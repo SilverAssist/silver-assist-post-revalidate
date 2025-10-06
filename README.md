@@ -247,33 +247,47 @@ Contributions are welcome! Please follow these guidelines:
 
 ## License
 
-This plugin is licensed under the GPL v2 or later.
+This plugin is licensed under the **Polyform Noncommercial License 1.0.0**.
+
+### Key Points
+
+- ✅ **Free for noncommercial use**: You can use, modify, and distribute this plugin for any noncommercial purpose
+- ✅ **Open source**: Source code is publicly available
+- ❌ **No commercial use**: Commercial use requires a separate commercial license
+- ✅ **Modifications allowed**: You can create and distribute modified versions (noncommercial only)
+- ✅ **Attribution**: Please maintain attribution to Silver Assist
+
+### Full License Text
 
 ```
-Silver Assist Post Revalidate
-Copyright (C) 2025
+Polyform Noncommercial License 1.0.0
+Copyright (C) 2025 Silver Assist
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+The licensor grants you a copyright license for the licensed material to do 
+everything you might do with the licensed material that would otherwise infringe 
+the licensor's copyright in it, for any noncommercial purpose, for the duration 
+of the license, and in all territories.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+Commercial purposes means use of the licensed material for a purpose intended 
+for or directed toward commercial advantage or monetary compensation.
 ```
+
+**Full license**: See [LICENSE](LICENSE) file or visit https://polyformproject.org/licenses/noncommercial/1.0.0
+
+### Commercial License
+
+If you need to use this plugin for commercial purposes, please contact Silver Assist for licensing options.
 
 ## Credits
 
-Developed by [Your Name](https://yourwebsite.com)
+Developed by [Silver Assist](http://silverassist.com/)
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/silver-assist-post-revalidate/issues)
 - **Documentation**: [GitHub Wiki](https://github.com/yourusername/silver-assist-post-revalidate/wiki)
-- **Email**: support@yourwebsite.com
+- **Website**: http://silverassist.com/
 
 ---
 
-Made with ❤️ for the WordPress community
+Made with ❤️ by Silver Assist

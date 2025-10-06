@@ -2,11 +2,11 @@
 	"name": "silver-assist/post-revalidate",
 	"description": "WordPress plugin for automatic post and category cache revalidation",
 	"type": "wordpress-plugin",
-	"license": "GPL-2.0-or-later",
+	"license": "PolyForm-Noncommercial-1.0.0",
 	"authors": [
 		{
-			"name": "Your Name",
-			"email": "your.email@example.com"
+			"name": "Silver Assist",
+			"homepage": "http://silverassist.com/"
 		}
 	],
 	"minimum-stability": "stable",

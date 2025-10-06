@@ -8,8 +8,8 @@
  * Requires PHP: 8.3
  * Author: Silver Assist
  * Author URI: http://silverassist.com/
- * License: GPL v2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * License: Polyform Noncommercial 1.0.0
+ * License URI: https://polyformproject.org/licenses/noncommercial/1.0.0
  * Text Domain: silver-assist-revalidate-posts
  * Domain Path: /languages
  *

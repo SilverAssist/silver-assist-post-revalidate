@@ -28,8 +28,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PSR-4 autoloading with composer
 - WordPress Coding Standards compliance (PHPCS)
 - PHPStan level 8 static analysis compliance
-- PHPUnit test suite with WordPress stubs
+- PHPUnit test suite with 13 comprehensive tests (100% passing)
 - Comprehensive PHPDoc documentation
+- **Polyform Noncommercial License 1.0.0** - Free for noncommercial use
+
+### License
+- Changed from GPL v2 to **Polyform Noncommercial 1.0.0**
+- Allows free use, modification, and distribution for noncommercial purposes
+- Commercial use requires separate commercial license
+- Full license details in LICENSE file
+
+### Testing
+- 13 unit tests with 100% pass rate
+- Brain Monkey + Mockery for WordPress function mocking
+- Custom WP_Post stub for testing without WordPress dependency
+- Tests cover: singleton pattern, post triggers, option saving, sanitization, validation
 
 ### Technical
 - Plugin constants: `SILVER_ASSIST_REVALIDATE_VERSION` and `SILVER_ASSIST_REVALIDATE_PLUGIN_DIR`
@@ -47,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WordPress Settings API integration
 - Proper input sanitization and output escaping
 - User capability checks for admin pages
+
+### Author
+- Developer: Silver Assist
+- Website: http://silverassist.com/
 
 ### Developer Features
 - Composer package configuration
