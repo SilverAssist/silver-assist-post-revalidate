@@ -1,0 +1,37 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Composer
+composer.lock
+composer.phar
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+debug.log
+error_log
+
+# PHPUnit cache
+.phpunit.result.cache
+
+# OS files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+
+# Build files
+*.zip
