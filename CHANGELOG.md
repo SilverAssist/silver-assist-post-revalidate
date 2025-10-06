@@ -18,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - WordPress.org readme.txt generation
   - ZIP archive creation with validation
   - CI/CD and local environment support
+- GitHub Actions workflow for automated releases (.github/workflows/release.yml)
+  - Automatic release creation on version tags (v*)
+  - Manual release trigger via workflow_dispatch
+  - Version validation and consistency checks
+  - CHANGELOG.md entry verification
+  - Automated build process with PHP 8.3
+  - Checksum generation (MD5 and SHA256)
+  - Build info documentation
+  - Release notes extraction from CHANGELOG
+  - Multi-PHP version testing (8.3, 8.4)
+  - Quality checks: PHPCS, PHPStan Level 8, PHPUnit
+  - Package structure validation
+  - Artifact retention (90 days)
+  - Success/failure notifications
 
 ### Planned
 - Custom post type support
