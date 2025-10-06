@@ -90,6 +90,7 @@ class Plugin
 	private function init_hooks(): void
 	{
 		\add_action( 'init', [ $this, 'load_textdomain' ] );
+		\add_filter( 'plugin_action_links_' . \plugin_basename( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ), [ $this, 'add_settings_link' ] );
 	}
 
 	/**
@@ -160,6 +161,26 @@ class Plugin
 	public function get_revalidate(): ?Revalidate
 	{
 		return $this->revalidate;
+	}
+
+	/**
+	 * Add settings link to plugin action links
+	 *
+	 * @since 1.0.0
+	 * @param array<string> $links Array of plugin action links.
+	 * @return array<string> Modified array of plugin action links.
+	 */
+	public function add_settings_link( array $links ): array
+	{
+		$settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			\esc_url( \admin_url( 'options-general.php?page=silver-assist-revalidate' ) ),
+			\esc_html__( 'Settings', 'silver-assist-revalidate-posts' )
+		);
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 
 	/**

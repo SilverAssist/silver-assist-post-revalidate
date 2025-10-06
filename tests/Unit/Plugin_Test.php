@@ -35,6 +35,7 @@ class Plugin_Test extends TestCase {
 		Functions\when( 'is_admin' )->justReturn( false );
 		Functions\when( 'add_action' )->justReturn( true );
 		Functions\when( 'add_filter' )->justReturn( true );
+		Functions\when( 'plugin_basename' )->returnArg();
 	}
 
 	/**
@@ -68,5 +69,24 @@ class Plugin_Test extends TestCase {
 	public function test_instance_is_plugin_class(): void {
 		$instance = Plugin::instance();
 		$this->assertInstanceOf( Plugin::class, $instance );
+	}
+
+	/**
+	 * Test add_settings_link method adds settings link to plugin actions.
+	 *
+	 * @return void
+	 */
+	public function test_add_settings_link_adds_link(): void {
+		Functions\when( 'admin_url' )->returnArg();
+		Functions\when( 'esc_url' )->returnArg();
+		Functions\when( 'esc_html__' )->justReturn( 'Settings' );
+
+		$instance = Plugin::instance();
+		$links    = [ 'deactivate' => '<a href="#">Deactivate</a>' ];
+		$result   = $instance->add_settings_link( $links );
+
+		$this->assertCount( 2, $result );
+		$this->assertStringContainsString( 'Settings', $result[0] );
+		$this->assertStringContainsString( 'silver-assist-revalidate', $result[0] );
 	}
 }
