@@ -30,7 +30,7 @@ if ( ! defined( 'WP_ENVIRONMENT_TYPE' ) ) {
 
 // Define plugin constants for testing.
 if ( ! defined( 'SILVER_ASSIST_REVALIDATE_VERSION' ) ) {
-	define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.0.0' );
+	define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.0.1' );
 }
 if ( ! defined( 'SILVER_ASSIST_REVALIDATE_PLUGIN_DIR' ) ) {
 	define( 'SILVER_ASSIST_REVALIDATE_PLUGIN_DIR', dirname( __DIR__ ) . '/' );

@@ -166,7 +166,7 @@ class Plugin
 	/**
 	 * Add settings link to plugin action links
 	 *
-	 * @since 1.0.0
+	 * @since 1.0.1
 	 * @param array<string> $links Array of plugin action links.
 	 * @return array<string> Modified array of plugin action links.
 	 */

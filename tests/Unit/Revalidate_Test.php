@@ -31,12 +31,10 @@ class Revalidate_Test extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		
-		// Define constants needed for tests.
+		// Define version constant if not already defined.
 		if ( ! defined( 'SILVER_ASSIST_REVALIDATE_VERSION' ) ) {
-			define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.0.0' );
-		}
-		
-		// Mock translation function globally to return the text as-is.
+			define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.0.1' );
+		}		// Mock translation function globally to return the text as-is.
 		Functions\when( '__' )->returnArg( 1 );
 	}
 

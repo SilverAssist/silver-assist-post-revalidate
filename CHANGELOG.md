@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.0.1] - 2025-10-06
+
+### Added
+- Settings link in plugins list page for quick access to configuration
+  - Direct link from Plugins page to Settings > Post Revalidate
+  - Appears as first action link before Deactivate/Delete
+  - Improves user experience with one-click access to settings
+
+### Changed
+- Enhanced plugin action links with quick settings access
+
+### Technical
+- New method `add_settings_link()` in Plugin class
+- Added `plugin_action_links` filter integration
+- New unit test for settings link functionality
+- Test coverage: 14 tests, 20 assertions (100% passing)
+
 ## [1.0.0] - 2025-10-06
 
 ### Added
@@ -113,9 +130,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **1.0.1** - Settings link enhancement (October 6, 2025)
 - **1.0.0** - Initial release (October 6, 2025)
 
 ---
 
-[Unreleased]: https://github.com/SilverAssist/silver-assist-post-revalidate/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/SilverAssist/silver-assist-post-revalidate/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/SilverAssist/silver-assist-post-revalidate/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SilverAssist/silver-assist-post-revalidate/releases/tag/v1.0.0
