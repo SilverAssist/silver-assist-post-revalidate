@@ -2,6 +2,9 @@
 /vendor/
 /node_modules/
 
+# Build artifacts
+/build/
+
 # Composer
 composer.lock
 composer.phar

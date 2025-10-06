@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - GitHub automatic updates integration via silverassist/wp-github-updater package
 - Updater class for seamless WordPress admin updates from GitHub releases
+- Automated release build system (scripts/build-release.sh)
+  - Production-ready package creation
+  - Composer production dependencies only
+  - Development file cleanup
+  - Vendor directory optimization
+  - WordPress.org readme.txt generation
+  - ZIP archive creation with validation
+  - CI/CD and local environment support
 
 ### Planned
 - Custom post type support
