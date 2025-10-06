@@ -26,7 +26,7 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 
 ### Via WordPress Admin (Recommended)
 
-1. Download the latest release from the [releases page](https://github.com/yourusername/silver-assist-post-revalidate/releases)
+1. Download the latest release from the [releases page](https://github.com/SilverAssist/silver-assist-post-revalidate/releases)
 2. Go to WordPress Admin → Plugins → Add New
 3. Click "Upload Plugin" and select the downloaded ZIP file
 4. Click "Install Now" and then "Activate"
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/silver-assist-post-revalidate.git
+git clone https://github.com/SilverAssist/silver-assist-post-revalidate.git
 cd silver-assist-post-revalidate
 ```
 
@@ -284,8 +284,8 @@ Developed by [Silver Assist](http://silverassist.com/)
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/silver-assist-post-revalidate/issues)
-- **Documentation**: [GitHub Wiki](https://github.com/yourusername/silver-assist-post-revalidate/wiki)
+- **Issues**: [GitHub Issues](https://github.com/SilverAssist/silver-assist-post-revalidate/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/SilverAssist/silver-assist-post-revalidate/wiki)
 - **Website**: http://silverassist.com/
 
 ---

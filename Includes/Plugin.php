@@ -145,7 +145,7 @@ class Plugin
 		// Only initialize updater if the class exists (composer dependency installed).
 		if ( class_exists( 'SilverAssist\\WpGithubUpdater\\Updater' ) ) {
 			$plugin_file = SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php';
-			$github_repo = 'silverassist/silver-assist-post-revalidate';
+			$github_repo = 'SilverAssist/silver-assist-post-revalidate';
 
 			$this->updater = new Updater( $plugin_file, $github_repo );
 		}
