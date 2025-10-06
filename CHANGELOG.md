@@ -7,32 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- GitHub automatic updates integration via silverassist/wp-github-updater package
-- Updater class for seamless WordPress admin updates from GitHub releases
-- Automated release build system (scripts/build-release.sh)
-  - Production-ready package creation
-  - Composer production dependencies only
-  - Development file cleanup
-  - Vendor directory optimization
-  - WordPress.org readme.txt generation
-  - ZIP archive creation with validation
-  - CI/CD and local environment support
-- GitHub Actions workflow for automated releases (.github/workflows/release.yml)
-  - Automatic release creation on version tags (v*)
-  - Manual release trigger via workflow_dispatch
-  - Version validation and consistency checks
-  - CHANGELOG.md entry verification
-  - Automated build process with PHP 8.3
-  - Checksum generation (MD5 and SHA256)
-  - Build info documentation
-  - Release notes extraction from CHANGELOG
-  - Multi-PHP version testing (8.3, 8.4)
-  - Quality checks: PHPCS, PHPStan Level 8, PHPUnit
-  - Package structure validation
-  - Artifact retention (90 days)
-  - Success/failure notifications
-
 ### Planned
 - Custom post type support
 - Manual revalidation button in admin
@@ -57,6 +31,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PHPUnit test suite with 13 comprehensive tests (100% passing)
 - Comprehensive PHPDoc documentation
 - **Polyform Noncommercial License 1.0.0** - Free for noncommercial use
+- GitHub automatic updates integration via silverassist/wp-github-updater package
+- Updater class for seamless WordPress admin updates from GitHub releases
+- Automated release build system (scripts/build-release.sh)
+  - Production-ready package creation
+  - Composer production dependencies only
+  - Development file cleanup
+  - Vendor directory optimization
+  - WordPress.org readme.txt generation
+  - ZIP archive creation with validation
+  - CI/CD and local environment support
+- GitHub Actions workflow for automated releases (.github/workflows/release.yml)
+  - Automatic release creation on version tags (v*)
+  - Manual release trigger via workflow_dispatch
+  - Version validation and consistency checks
+  - CHANGELOG.md entry verification
+  - Automated build process with PHP 8.3
+  - Checksum generation (MD5 and SHA256)
+  - Build info documentation
+  - Release notes extraction from CHANGELOG
+  - Multi-PHP version testing (8.3, 8.4)
+  - Quality checks: PHPCS, PHPStan Level 8, PHPUnit
+  - Package structure validation
+  - Artifact retention (90 days)
+  - Success/failure notifications
 
 ### License
 - Changed from GPL v2 to **Polyform Noncommercial 1.0.0**
