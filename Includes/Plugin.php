@@ -47,14 +47,21 @@ class Plugin
 	private ?AdminSettings $admin_settings = null;
 
 	/**
-	 * Gets the singleton instance
+	 * Updater instance
+	 *
+	 * @var Updater|null
+	 */
+	private ?Updater $updater = null;
+
+	/**
+	 * Get singleton instance
 	 *
 	 * @since 1.0.0
-	 * @return Plugin The single instance of the Plugin class
+	 * @return Plugin
 	 */
 	public static function instance(): Plugin
 	{
-		if ( ! isset( self::$instance ) ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
 
@@ -115,6 +122,33 @@ class Plugin
 		if ( \is_admin() ) {
 			$this->admin_settings = AdminSettings::instance();
 		}
+
+		// Initialize GitHub updater for automatic updates.
+		$this->init_updater();
+	}
+
+	/**
+	 * Initialize GitHub updater
+	 *
+	 * Sets up automatic updates from GitHub releases.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function init_updater(): void
+	{
+		// Skip updater initialization in test environment.
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && 'test' === WP_ENVIRONMENT_TYPE ) {
+			return;
+		}
+
+		// Only initialize updater if the class exists (composer dependency installed).
+		if ( class_exists( 'SilverAssist\\WpGithubUpdater\\Updater' ) ) {
+			$plugin_file = SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php';
+			$github_repo = 'silverassist/silver-assist-post-revalidate';
+
+			$this->updater = new Updater( $plugin_file, $github_repo );
+		}
 	}
 
 	/**
@@ -137,5 +171,16 @@ class Plugin
 	public function get_admin_settings(): ?AdminSettings
 	{
 		return $this->admin_settings;
+	}
+
+	/**
+	 * Get Updater instance
+	 *
+	 * @since 1.0.0
+	 * @return Updater|null
+	 */
+	public function get_updater(): ?Updater
+	{
+		return $this->updater;
 	}
 }

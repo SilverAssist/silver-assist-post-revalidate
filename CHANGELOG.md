@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- GitHub automatic updates integration via silverassist/wp-github-updater package
+- Updater class for seamless WordPress admin updates from GitHub releases
+
 ### Planned
 - Custom post type support
 - Manual revalidation button in admin
