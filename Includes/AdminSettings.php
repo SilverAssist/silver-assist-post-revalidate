@@ -14,6 +14,8 @@
 
 namespace RevalidatePosts;
 
+use SilverAssist\SettingsHub\SettingsHub;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -81,8 +83,42 @@ class AdminSettings
 	 */
 	private function init_hooks(): void
 	{
-		\add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
+		\add_action( 'init', [ $this, 'register_with_settings_hub' ] );
 		\add_action( 'admin_init', [ $this, 'register_settings' ] );
+	}
+
+	/**
+	 * Register plugin with Settings Hub
+	 *
+	 * If the Settings Hub is available, register this plugin with it.
+	 * Otherwise, fall back to standalone settings page.
+	 *
+	 * @since 1.2.0
+	 * @return void
+	 */
+	public function register_with_settings_hub(): void
+	{
+		// Check if Settings Hub is available.
+		if ( ! class_exists( SettingsHub::class ) ) {
+			// Fallback: Register standalone settings page if hub is not available.
+			\add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
+			return;
+		}
+
+		// Get the hub instance.
+		$hub = SettingsHub::get_instance();
+
+		// Register our plugin with the hub.
+		$hub->register_plugin(
+			$this->page_slug,
+			\__( 'Post Revalidate', 'silver-assist-revalidate-posts' ),
+			[ $this, 'render_settings_page' ],
+			[
+				'description' => \__( 'Automatic cache revalidation for posts and categories. Triggers revalidation requests when content is created, updated, or deleted.', 'silver-assist-revalidate-posts' ),
+				'version'     => SILVER_ASSIST_REVALIDATE_VERSION,
+				'tab_title'   => \__( 'Post Revalidate', 'silver-assist-revalidate-posts' ),
+			]
+		);
 	}
 
 	/**
