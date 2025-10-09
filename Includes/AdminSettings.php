@@ -86,8 +86,8 @@ class AdminSettings
 		\add_action( 'init', [ $this, 'register_with_settings_hub' ] );
 		\add_action( 'admin_init', [ $this, 'register_settings' ] );
 		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
-		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_check_updates_script' ] );
 		\add_action( 'wp_ajax_silver_assist_clear_logs', [ $this, 'ajax_clear_logs' ] );
+		\add_action( 'wp_ajax_silver_assist_revalidate_check_version', [ $this, 'ajax_check_updates' ] );
 	}
 
 	/**
@@ -111,6 +111,9 @@ class AdminSettings
 		// Get the hub instance.
 		$hub = SettingsHub::get_instance();
 
+		// Get actions array for plugin card.
+		$actions = $this->get_hub_actions();
+
 		// Register our plugin with the hub.
 		$hub->register_plugin(
 			$this->page_slug,
@@ -120,15 +123,32 @@ class AdminSettings
 				'description' => \__( 'Automatic cache revalidation for posts and categories. Triggers revalidation requests when content is created, updated, or deleted.', 'silver-assist-revalidate-posts' ),
 				'version'     => SILVER_ASSIST_REVALIDATE_VERSION,
 				'tab_title'   => \__( 'Post Revalidate', 'silver-assist-revalidate-posts' ),
-				'actions'     => [
-					[
-						'label'    => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
-						'callback' => [ $this, 'render_check_updates_script' ],
-						'class'    => 'button button-secondary',
-					],
-				],
+				'actions'     => $actions,
 			]
 		);
+	}
+
+	/**
+	 * Get actions array for Settings Hub plugin card
+	 *
+	 * @since 1.2.1
+	 * @return array<int, array{label: string, callback: callable, class?: string}> Array of action configurations
+	 */
+	private function get_hub_actions(): array
+	{
+		$actions = [];
+
+		// Add "Check Updates" button if updater is available.
+		$plugin = Plugin::instance();
+		if ( $plugin->get_updater() ) {
+			$actions[] = [
+				'label'    => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
+				'callback' => [ $this, 'render_check_updates_script' ],
+				'class'    => 'button button-primary',
+			];
+		}
+
+		return $actions;
 	}
 
 	/**
@@ -205,69 +225,56 @@ class AdminSettings
 	}
 
 	/**
-	 * Render JavaScript for Check Updates button
+	 * Render update check script for Settings Hub action button
 	 *
-	 * Outputs inline JavaScript call to the external script function.
-	 *
-	 * @since 1.2.1
-	 * @param string $plugin_slug The plugin slug for context.
-	 * @return void
-	 */
-	public function render_check_updates_script( string $plugin_slug ): void
-	{
-		// Get nonce for AJAX request (must match Updater.php configuration).
-		$nonce = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
-
-		// Settings Hub generates button ID as: 'sa-action-{plugin_slug}-{sanitized_label}'.
-		// The label "Check Updates" gets sanitized to "check-updates".
-		$button_id = 'sa-action-' . \sanitize_key( $plugin_slug . '-Check Updates' );
-
-		// Call the external JavaScript function.
-		echo "silverAssistCheckUpdates('" . \esc_js( $button_id ) . "', '" . \esc_js( $nonce ) . "');";
-	}
-
-	/**
-	 * Enqueue check updates script
-	 *
-	 * Loads the JavaScript file for handling check updates button.
+	 * Outputs inline JavaScript that triggers an AJAX update check when called
+	 * by the Settings Hub action button. Integrates with wp-github-updater.
 	 *
 	 * @since 1.2.1
-	 * @param string $hook The current admin page hook.
 	 * @return void
 	 */
-	public function enqueue_check_updates_script( string $hook ): void
+	public function render_check_updates_script(): void
 	{
-		// Only load on Silver Assist dashboard page.
-		if ( 'toplevel_page_silver-assist' !== $hook ) {
+		$plugin  = Plugin::instance();
+		$updater = $plugin->get_updater();
+
+		if ( ! $updater ) {
 			return;
 		}
 
-		// Enqueue the check updates script.
-		\wp_enqueue_script(
-			'silver-assist-check-updates',
-			\plugin_dir_url( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ) . 'assets/js/admin-check-updates.js',
-			[ 'jquery' ],
-			SILVER_ASSIST_REVALIDATE_VERSION,
-			true
-		);
-
-		// Localize script with translations and data.
-		\wp_localize_script(
-			'silver-assist-check-updates',
-			'silverAssistCheckUpdatesData',
-			[
-				'ajaxUrl'              => \admin_url( 'admin-ajax.php' ),
-				'ajaxAction'           => 'silver_assist_revalidate_check_version',
-				'updatesPageUrl'       => \admin_url( 'plugins.php?plugin_status=upgrade' ),
-				'checkUpdatesText'     => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
-				'checkingText'         => \__( 'Checking...', 'silver-assist-revalidate-posts' ),
-				'updateAvailableText'  => \__( 'Update Available!', 'silver-assist-revalidate-posts' ),
-				'upToDateText'         => \__( 'Up to Date', 'silver-assist-revalidate-posts' ),
-				'errorText'            => \__( 'Error', 'silver-assist-revalidate-posts' ),
-				'errorCheckingMessage' => \__( 'Error checking for updates. Please try again.', 'silver-assist-revalidate-posts' ),
-				'networkErrorMessage'  => \__( 'Network error. Please check your connection.', 'silver-assist-revalidate-posts' ),
-			]
-		);
+		$nonce = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
+		?>
+		<script type="text/javascript">
+		(($) => {
+			"use strict";
+			
+			// Trigger update check immediately when action button is clicked
+			$.ajax({
+				url: ajaxurl,
+				type: "POST",
+				data: {
+					action: "silver_assist_revalidate_check_version",
+					nonce: "<?php echo \esc_js( $nonce ); ?>"
+				},
+				success: (response) => {
+					if (response.success) {
+						if (response.data.update_available) {
+							alert("<?php echo \esc_js( \__( 'Update available! Redirecting to Updates page...', 'silver-assist-revalidate-posts' ) ); ?>");
+							window.location.href = "<?php echo \esc_url( \admin_url( 'update-core.php' ) ); ?>";
+						} else {
+							alert("<?php echo \esc_js( \__( "You're up to date!", 'silver-assist-revalidate-posts' ) ); ?>");
+						}
+					} else {
+						alert("<?php echo \esc_js( \__( 'Error checking updates. Please try again.', 'silver-assist-revalidate-posts' ) ); ?>");
+					}
+				},
+				error: () => {
+					alert("<?php echo \esc_js( \__( 'Error connecting to update server.', 'silver-assist-revalidate-posts' ) ); ?>");
+				}
+			});
+		})(jQuery);
+		</script>
+		<?php
 	}
 
 	/**
@@ -559,6 +566,63 @@ class AdminSettings
 			\wp_send_json_success( \__( 'Logs cleared successfully.', 'silver-assist-revalidate-posts' ) );
 		} else {
 			\wp_send_json_error( \__( 'Failed to clear logs.', 'silver-assist-revalidate-posts' ) );
+		}
+	}
+
+	/**
+	 * AJAX handler for checking plugin updates
+	 *
+	 * Validates nonce, checks for updates using wp-github-updater,
+	 * and returns update status information.
+	 *
+	 * @since 1.2.1
+	 * @return void
+	 */
+	public function ajax_check_updates(): void
+	{
+		// Validate nonce.
+		if ( ! isset( $_POST['nonce'] ) || ! \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'silver_assist_revalidate_version_check' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Security validation failed', 'silver-assist-revalidate-posts' ) ] );
+		}
+
+		// Check user capability.
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			\wp_send_json_error( [ 'message' => \__( 'Insufficient permissions', 'silver-assist-revalidate-posts' ) ] );
+		}
+
+		$plugin  = Plugin::instance();
+		$updater = $plugin->get_updater();
+
+		if ( ! $updater ) {
+			\wp_send_json_error( [ 'message' => \__( 'Updater not available', 'silver-assist-revalidate-posts' ) ] );
+		}
+
+		try {
+			// Clear cached version to force fresh check.
+			$transient_key = 'silver-assist-revalidate-posts_version_check';
+			\delete_transient( $transient_key );
+
+			$update_available = $updater->isUpdateAvailable();
+			$current_version  = $updater->getCurrentVersion();
+			$latest_version   = $updater->getLatestVersion();
+
+			\wp_send_json_success(
+				[
+					'update_available' => $update_available,
+					'current_version'  => $current_version,
+					'latest_version'   => $latest_version,
+					'message'          => $update_available
+						? \__( 'Update available!', 'silver-assist-revalidate-posts' )
+						: \__( "You're up to date!", 'silver-assist-revalidate-posts' ),
+				]
+			);
+		} catch ( \Exception $e ) {
+			\wp_send_json_error(
+				[
+					'message' => \__( 'Error checking for updates', 'silver-assist-revalidate-posts' ),
+					'error'   => $e->getMessage(),
+				]
+			);
 		}
 	}
 }

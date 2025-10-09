@@ -168,66 +168,10 @@ class AdminSettings_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that check updates script is enqueued on correct page.
+	 * Test that render_check_updates_script outputs inline AJAX JavaScript.
 	 *
-	 * @return void
-	 */
-	public function test_check_updates_script_enqueued_on_dashboard(): void {
-		wp_set_current_user( self::$admin_user_id );
-		
-		$instance = AdminSettings::instance();
-		$instance->enqueue_check_updates_script( 'toplevel_page_silver-assist' );
-		
-		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
-	}
-
-	/**
-	 * Test that check updates script is NOT enqueued on other pages.
-	 *
-	 * @return void
-	 */
-	public function test_check_updates_script_not_enqueued_on_other_pages(): void {
-		wp_set_current_user( self::$admin_user_id );
-		
-		// Dequeue any previously enqueued scripts to ensure clean state.
-		\wp_dequeue_script( 'silver-assist-check-updates' );
-		
-		$instance = AdminSettings::instance();
-		
-		// The script should only be enqueued on the Settings Hub dashboard.
-		// On other pages, the method returns early without enqueuing.
-		$instance->enqueue_check_updates_script( 'index.php' );
-		
-		// Since we're passing 'index.php' (not 'toplevel_page_silver-assist'),
-		// the script should not be enqueued.
-		$this->assertFalse( 
-			wp_script_is( 'silver-assist-check-updates', 'enqueued' ),
-			'Script should not be enqueued on other pages'
-		);
-	}
-
-	/**
-	 * Test that check updates script has correct localization data.
-	 *
-	 * @return void
-	 */
-	public function test_check_updates_script_has_localization_data(): void {
-		wp_set_current_user( self::$admin_user_id );
-		
-		$instance = AdminSettings::instance();
-		$instance->enqueue_check_updates_script( 'toplevel_page_silver-assist' );
-		
-		global $wp_scripts;
-		
-		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
-		$this->assertArrayHasKey( 'silver-assist-check-updates', $wp_scripts->registered );
-		
-		$localized_data = $wp_scripts->registered['silver-assist-check-updates']->extra['data'] ?? '';
-		$this->assertStringContainsString( 'silverAssistCheckUpdatesData', $localized_data );
-	}
-
-	/**
-	 * Test that render_check_updates_script outputs correct JavaScript.
+	 * Tests that the inline script properly integrates with Settings Hub's action button
+	 * and sends AJAX requests to the server with correct nonce validation.
 	 *
 	 * @return void
 	 */
@@ -235,13 +179,21 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		$instance = AdminSettings::instance();
 
 		ob_start();
-		$instance->render_check_updates_script( 'silver-assist-revalidate' );
+		$instance->render_check_updates_script();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'silverAssistCheckUpdates', $output );
-		// The button ID is generated using sanitize_key(), which converts
-		// "Check Updates" to "checkupdates" (lowercase, no spaces/special chars).
-		$this->assertStringContainsString( 'sa-action-silver-assist-revalidate-checkupdates', $output );
+		// Verify inline script structure.
+		$this->assertStringContainsString( '<script type="text/javascript">', $output );
+		$this->assertStringContainsString( '$.ajax({', $output );
+		
+		// Verify AJAX action and nonce.
+		$this->assertStringContainsString( 'action: "silver_assist_revalidate_check_version"', $output );
+		$this->assertStringContainsString( 'nonce:', $output );
+		
+		// Verify success handling with update_available check.
+		$this->assertStringContainsString( 'if (response.data.update_available)', $output );
+		$this->assertStringContainsString( 'window.location.href', $output );
+		$this->assertStringContainsString( 'update-core.php', $output );
 	}
 
 	/**
