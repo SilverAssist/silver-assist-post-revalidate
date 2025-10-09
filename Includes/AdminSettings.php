@@ -216,8 +216,11 @@ class AdminSettings
 	public function render_check_updates_script( string $plugin_slug ): void
 	{
 		// Get nonce for AJAX request (must match Updater.php configuration).
-		$nonce     = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
-		$button_id = "sa-action-{$plugin_slug}-Check-Updates";
+		$nonce = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
+
+		// Settings Hub generates button ID as: 'sa-action-{plugin_slug}-{sanitized_label}'.
+		// The label "Check Updates" gets sanitized to "check-updates".
+		$button_id = 'sa-action-' . \sanitize_key( $plugin_slug . '-Check Updates' );
 
 		// Call the external JavaScript function.
 		echo "silverAssistCheckUpdates('" . \esc_js( $button_id ) . "', '" . \esc_js( $nonce ) . "');";
@@ -378,7 +381,9 @@ class AdminSettings
 				<p><?php \esc_html_e( 'This plugin automatically revalidates your content when:', 'silver-assist-revalidate-posts' ); ?></p>
 				<ul style="list-style: disc; margin-left: 20px;">
 					<li><?php \esc_html_e( 'A post is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+					<li><?php \esc_html_e( 'A post status changes (publish/unpublish)', 'silver-assist-revalidate-posts' ); ?></li>
 					<li><?php \esc_html_e( 'A category is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+					<li><?php \esc_html_e( 'A tag is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
 				</ul>
 				<p>
 					<?php
