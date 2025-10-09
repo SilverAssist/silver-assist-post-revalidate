@@ -71,7 +71,7 @@ class AdminSettings_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_saves_revalidate_endpoint_correctly(): void {
-		$test_endpoint = 'https://example.com/api/revalidate'\;
+		$test_endpoint = 'https://example.com/api/revalidate';
 		
 		update_option( 'revalidate_endpoint', $test_endpoint );
 		$saved_value = get_option( 'revalidate_endpoint', '' );

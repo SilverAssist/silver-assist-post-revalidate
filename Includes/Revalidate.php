@@ -13,6 +13,7 @@
  */
 
 namespace RevalidatePosts;
+use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -69,11 +70,18 @@ class Revalidate
 	{
 		// Hook into post save actions.
 		\add_action( 'save_post', [ $this, 'on_post_saved' ], 10, 1 );
+		\add_action( 'delete_post', [ $this, 'on_post_deleted' ], 10, 1 );
+		\add_action( 'transition_post_status', [ $this, 'on_post_status_changed' ], 10, 3 );
 
 		// Hook into category update actions.
 		\add_action( 'created_category', [ $this, 'on_category_updated' ], 10, 1 );
 		\add_action( 'edited_category', [ $this, 'on_category_updated' ], 10, 1 );
 		\add_action( 'delete_category', [ $this, 'on_category_updated' ], 10, 1 );
+
+		// Hook into tag update actions.
+		\add_action( 'created_post_tag', [ $this, 'on_tag_updated' ], 10, 1 );
+		\add_action( 'edited_post_tag', [ $this, 'on_tag_updated' ], 10, 1 );
+		\add_action( 'delete_post_tag', [ $this, 'on_tag_updated' ], 10, 1 );
 	}
 
 	/**
@@ -94,7 +102,7 @@ class Revalidate
 		}
 
 		$post = \get_post( $post_id );
-		if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status ) {
+		if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status ) {
 			return;
 		}
 
@@ -119,6 +127,17 @@ class Revalidate
 				$category_link = \get_category_link( $category->term_id );
 				if ( $category_link ) {
 					$paths[] = $this->get_relative_path_from_url( $category_link );
+				}
+			}
+		}
+
+		// Get tag paths for this post.
+		$tags = \get_the_tags( $post_id );
+		if ( ! empty( $tags ) && is_array( $tags ) ) {
+			foreach ( $tags as $tag ) {
+				$tag_link = \get_tag_link( $tag->term_id );
+				if ( $tag_link ) {
+					$paths[] = $this->get_relative_path_from_url( $tag_link );
 				}
 			}
 		}
@@ -176,6 +195,183 @@ class Revalidate
 	}
 
 	/**
+	 * Handles post deletion events to trigger revalidation
+	 *
+	 * When a post is deleted, this function revalidates the post permalink
+	 * and all related category/tag archives.
+	 *
+	 * @since 1.2.0
+	 * @param int $post_id The ID of the deleted post.
+	 * @return void
+	 */
+	public function on_post_deleted( int $post_id ): void
+	{
+		// Skip autosaves and revisions.
+		if ( \wp_is_post_autosave( $post_id ) || \wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		$post = \get_post( $post_id );
+		if ( ! $post || 'post' !== $post->post_type ) {
+			return;
+		}
+
+		$paths = [];
+
+		// Get post permalink before deletion.
+		$permalink = \get_permalink( $post_id );
+		if ( $permalink ) {
+			$paths[] = $this->get_relative_path_from_url( $permalink );
+		}
+
+		// Get category paths for this post.
+		$categories = \get_the_category( $post_id );
+		if ( ! empty( $categories ) ) {
+			foreach ( $categories as $category ) {
+				$category_link = \get_category_link( $category->term_id );
+				if ( $category_link ) {
+					$paths[] = $this->get_relative_path_from_url( $category_link );
+				}
+			}
+		}
+
+		// Get tag paths for this post.
+		$tags = \get_the_tags( $post_id );
+		if ( ! empty( $tags ) && is_array( $tags ) ) {
+			foreach ( $tags as $tag ) {
+				$tag_link = \get_tag_link( $tag->term_id );
+				if ( $tag_link ) {
+					$paths[] = $this->get_relative_path_from_url( $tag_link );
+				}
+			}
+		}
+
+		if ( ! empty( $paths ) ) {
+			$this->revalidate_paths( $paths );
+		}
+	}
+
+	/**
+	 * Handles post status transitions to trigger revalidation
+	 *
+	 * When a post status changes (e.g., publish → draft, draft → publish),
+	 * this function triggers revalidation of the post and related taxonomies.
+	 * This is crucial for unpublishing content as it needs to invalidate caches
+	 * even when the post is no longer in publish status.
+	 *
+	 * @since 1.2.0
+	 * @param string  $new_status The new post status.
+	 * @param string  $old_status The old post status.
+	 * @param WP_Post $post The post object.
+	 * @return void
+	 */
+	public function on_post_status_changed( string $new_status, string $old_status, $post ): void
+	{
+		// Skip if status hasn't changed.
+		if ( $new_status === $old_status ) {
+			return;
+		}
+
+		// Skip autosaves and revisions.
+		if ( \wp_is_post_autosave( $post->ID ) || \wp_is_post_revision( $post->ID ) ) {
+			return;
+		}
+
+		// Only handle standard posts.
+		if ( 'post' !== $post->post_type ) {
+			return;
+		}
+
+		// Only revalidate if transitioning to/from publish status.
+		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+			return;
+		}
+
+		// Collect paths to revalidate.
+		$paths = [];
+
+		// Add post permalink (using cached permalink if post is no longer published).
+		$post_url = \get_permalink( $post->ID );
+		if ( ! empty( $post_url ) ) {
+			$paths[] = $this->get_relative_path_from_url( $post_url );
+		}
+
+		// Add category paths.
+		$categories = \get_the_category( $post->ID );
+		if ( ! empty( $categories ) ) {
+			foreach ( $categories as $category ) {
+				$category_link = \get_category_link( $category->term_id );
+				if ( ! empty( $category_link ) ) {
+					$paths[] = $this->get_relative_path_from_url( $category_link );
+				}
+			}
+		}
+
+		// Add tag paths.
+		$tags = \get_the_tags( $post->ID );
+		if ( ! empty( $tags ) && \is_array( $tags ) ) {
+			foreach ( $tags as $tag ) {
+				$tag_link = \get_tag_link( $tag->term_id );
+				if ( ! empty( $tag_link ) ) {
+					$paths[] = $this->get_relative_path_from_url( $tag_link );
+				}
+			}
+		}
+
+		// Revalidate all paths.
+		if ( ! empty( $paths ) ) {
+			$this->revalidate_paths( $paths );
+		}
+	}
+
+	/**
+	 * Handles tag updates to trigger revalidation
+	 *
+	 * When a tag is updated, this function identifies all affected paths
+	 * and initiates the cache invalidation process.
+	 *
+	 * @since 1.2.0
+	 * @param int $term_id The ID of the updated tag.
+	 * @return void
+	 */
+	public function on_tag_updated( int $term_id ): void
+	{
+		$tag = \get_term( $term_id, 'post_tag' );
+		if ( \is_wp_error( $tag ) || ! $tag ) {
+			return;
+		}
+
+		$paths = [];
+
+		// Get tag archive link.
+		$tag_link = \get_tag_link( $term_id );
+		if ( $tag_link ) {
+			$paths[] = $this->get_relative_path_from_url( $tag_link );
+		}
+
+		// Get all posts with this tag.
+		$posts = \get_posts(
+			[
+				'tag_id'      => $term_id,
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'numberposts' => -1,
+			]
+		);
+
+		foreach ( $posts as $post ) {
+			$post_link = \get_permalink( $post->ID );
+			if ( $post_link ) {
+				$paths[] = $this->get_relative_path_from_url( $post_link );
+			}
+		}
+
+		if ( ! empty( $paths ) ) {
+			$this->revalidate_paths( $paths );
+		}
+	}
+
+	/**
 	 * Converts a full URL to a relative path
 	 *
 	 * Removes the domain from a URL and returns only the path portion.
@@ -203,6 +399,9 @@ class Revalidate
 	 */
 	public function revalidate_paths( array $paths ): void
 	{
+		// Remove duplicate paths.
+		$paths = array_unique( $paths );
+
 		$revalidate_url   = \get_option( 'revalidate_endpoint' );
 		$revalidate_token = \get_option( 'revalidate_token' );
 
