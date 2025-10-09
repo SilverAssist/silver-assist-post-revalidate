@@ -10,10 +10,10 @@
 # @version 1.2.0
 #
 # Usage:
-#   bash bin/install-wp-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [skip-database-creation]
+#   bash scripts/install-wp-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [skip-database-creation]
 #
 # Example:
-#   bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
+#   bash scripts/install-wp-tests.sh wordpress_test root '' localhost latest
 #
 
 if [ $# -lt 3 ]; then

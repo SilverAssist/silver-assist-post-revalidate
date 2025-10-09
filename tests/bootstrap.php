@@ -31,7 +31,7 @@ if ( ! file_exists( "{$_tests_dir}/includes/functions.php" ) ) {
 	echo "Location checked: {$_tests_dir}\n\n";
 	echo "To install WordPress test suite:\n\n";
 	echo "1. Install WordPress test library:\n";
-	echo "   bash bin/install-wp-tests.sh wordpress_test root '' localhost latest\n\n";
+	echo "   bash scripts/install-wp-tests.sh wordpress_test root '' localhost latest\n\n";
 	echo "2. Or set WP_TESTS_DIR environment variable:\n";
 	echo "   export WP_TESTS_DIR=/path/to/wordpress-tests-lib\n\n";
 	echo "3. Or in phpunit.xml:\n";

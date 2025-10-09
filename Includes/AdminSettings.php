@@ -7,7 +7,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.2.0
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
@@ -443,11 +443,11 @@ class AdminSettings
 							<div class="sa-log-content">
 								<div class="sa-log-section">
 									<h4><?php \esc_html_e( 'Request', 'silver-assist-revalidate-posts' ); ?></h4>
-									<textarea readonly rows="8"><?php echo \esc_textarea( $request_json ); ?></textarea>
+									<textarea readonly rows="8"><?php echo \esc_textarea( false !== $request_json ? $request_json : '' ); ?></textarea>
 								</div>
 								<div class="sa-log-section">
 									<h4><?php \esc_html_e( 'Response', 'silver-assist-revalidate-posts' ); ?></h4>
-									<textarea readonly rows="12"><?php echo \esc_textarea( $response_json ); ?></textarea>
+									<textarea readonly rows="12"><?php echo \esc_textarea( false !== $response_json ? $response_json : '' ); ?></textarea>
 								</div>
 							</div>
 						</div>

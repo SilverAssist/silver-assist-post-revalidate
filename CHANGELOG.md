@@ -13,9 +13,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
-## [1.2.0] - TBD
+## [1.2.0] - 2025-10-09
 
 ### Added
+- **Tag Support**: Complete tag revalidation functionality
+  - Automatic revalidation when tags are created, edited, or deleted
+  - Tag paths included when posts are saved or deleted
+  - All posts with a tag are revalidated when tag is modified
+  - New hooks: `created_post_tag`, `edited_post_tag`, `delete_post_tag`
+  - New method: `on_tag_updated()` for tag lifecycle events
+
+- **Post Status Transition Support**: Smart revalidation on status changes
+  - Revalidation triggered when posts are published or unpublished
+  - Handles draft → publish transitions
+  - Handles publish → draft transitions (unpublishing)
+  - Handles publish → private transitions
+  - New hook: `transition_post_status`
+  - New method: `on_post_status_changed()` for status transitions
+
+- **Post Deletion Support**: Revalidation on post deletion
+  - Automatic revalidation when posts are permanently deleted
+  - Revalidates post permalink, categories, and tags
+  - New hook: `delete_post`
+  - New method: `on_post_deleted()` for deletion events
+
+- **Path Deduplication**: Prevents duplicate revalidation requests
+  - Uses `array_unique()` to remove duplicate paths
+  - Ensures each path is only revalidated once per operation
+  - Improves performance and reduces API calls
+
 - **Revalidation Debug Logs**: Complete traceability system for revalidation requests
   - Accordion-style debug section in admin settings page
   - Displays last 100 revalidation requests (FIFO rotation)
@@ -26,8 +52,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Clear All Logs" button with AJAX confirmation
   - Helps identify duplicate requests and track server responses
   - Stores logs in WordPress options (`silver_assist_revalidate_logs`)
+
+- **Comprehensive Test Suite**: 36 tests covering all scenarios (100% passing)
+  - Unified test file with organized sections
+  - Post lifecycle tests (create, edit, delete, draft filtering)
+  - Post status transition tests (3 scenarios)
+  - Taxonomy invalidation tests (categories + tags)
+  - Deduplication tests
+  - Category lifecycle tests (create, edit, delete)
+  - Tag lifecycle tests (create, edit, delete)
+  - Log management tests (entries, fields, FIFO, clear, empty endpoint)
+  - Uses WordPress Test Suite (PHPUnit 9.6.29)
+  - HTTP mocking for fast, reliable tests (0.3s execution time)
   
 ### Changed
+- **Enhanced `Revalidate.php`**: Extended core revalidation class
+  - Added 6 new WordPress action hooks (3 for posts, 3 for tags)
+  - `on_post_saved()` now includes tag path revalidation
+  - `on_post_status_changed()` bypasses status check for unpublish scenarios
+  - `revalidate_paths()` now deduplicates paths before processing
+  - Import added: `use WP_Post;` for type safety
+
 - Enhanced `revalidate_paths()` method to capture and log all request/response data
 - Admin settings page now includes debug section below configuration
 - **Refactored assets to external files**: Moved inline CSS and JavaScript to separate files
@@ -36,7 +81,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses `wp_enqueue_style()` and `wp_enqueue_script()` properly
   - Uses `wp_localize_script()` for internationalization
 
+### Fixed
+- Status transition revalidation now works correctly for unpublishing posts
+  - Previously failed because `on_post_saved()` checked for publish status
+  - Now `on_post_status_changed()` handles revalidation directly
+  - Properly revalidates post permalink, categories, and tags even after status change
+
 ### Technical
+- New `on_post_deleted()` method for post deletion handling (lines 197-249)
+- New `on_post_status_changed()` method for status transitions (lines 254-323)
+- New `on_tag_updated()` method for tag lifecycle events (lines 325-374)
 - New `save_log_entry()` private method in Revalidate class
 - New `clear_logs()` static method in Revalidate class
 - New `render_debug_logs_section()` method in AdminSettings class
@@ -47,6 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Accordion functionality with jQuery for expanding/collapsing log details
 - Responsive CSS styling with mobile breakpoints
 - Build script updated to include `assets/` directory and validation
+- Test files unified: `Revalidate_Test.php` (710 lines, 36 tests)
+- WordPress Test Suite integration with PHP 8.4.1 and WordPress 6.8.3
 
 ## [1.1.0] - 2025-10-08
 

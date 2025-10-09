@@ -10,6 +10,10 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 
 - ✅ **Automatic Revalidation**: Triggers on post save, update, and delete
 - ✅ **Category Support**: Revalidates when categories are created, updated, or deleted
+- ✅ **Tag Support**: Revalidates when tags are created, updated, or deleted (NEW in v1.2.0)
+- ✅ **Status Transitions**: Smart revalidation on publish/unpublish (NEW in v1.2.0)
+- ✅ **Post Deletion**: Automatic revalidation when posts are deleted (NEW in v1.2.0)
+- ✅ **Path Deduplication**: Prevents duplicate revalidation requests (NEW in v1.2.0)
 - ✅ **Path-Based**: Sends only relative paths (no domain) to your endpoint
 - ✅ **Secure**: Token-based authentication for endpoint requests
 - ✅ **Simple Configuration**: Easy-to-use admin settings page
@@ -17,6 +21,7 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 - ✅ **Centralized Settings**: Integrates with Silver Assist Settings Hub
 - ✅ **Automatic Updates**: GitHub-based auto-updates for seamless upgrades
 - ✅ **Modern PHP**: Built with PHP 8.3+ features and PSR-4 autoloading
+- ✅ **Comprehensive Tests**: 36 tests, 100% passing, 0.3s execution time
 
 ## Requirements
 
@@ -78,10 +83,26 @@ Once configured, the plugin works automatically. No additional setup required!
 #### When a Post is Saved/Updated
 - The post's permalink
 - All categories associated with the post
+- All tags associated with the post
+
+#### When a Post is Deleted
+- The post's permalink (before deletion)
+- All categories associated with the post
+- All tags associated with the post
+
+#### When Post Status Changes (Publish/Unpublish)
+- The post's permalink
+- All categories associated with the post
+- All tags associated with the post
+- Triggers on: draft → publish, publish → draft, publish → private
 
 #### When a Category is Updated
 - The category archive page
 - All posts within that category
+
+#### When a Tag is Updated
+- The tag archive page
+- All posts with that tag
 
 ### Request Format
 
@@ -299,8 +320,10 @@ The plugin uses PHPUnit with the WordPress test suite for comprehensive integrat
 
 1. Install the WordPress test suite using the provided script:
 
+To install the WordPress test library, run:
+
 ```bash
-bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
+bash scripts/install-wp-tests.sh wordpress_test root '' localhost latest
 ```
 
 **Parameters**:

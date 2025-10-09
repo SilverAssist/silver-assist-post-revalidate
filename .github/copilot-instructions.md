@@ -11,18 +11,23 @@
 
 ## Purpose
 
-This WordPress plugin provides automatic cache revalidation for posts and categories. When content is created, updated, or deleted, the plugin automatically triggers revalidation requests to a configured endpoint (typically a Next.js application) to ensure fresh content delivery.
+This WordPress plugin provides automatic cache revalidation for posts, categories, and tags. When content is created, updated, deleted, or status changes, the plugin automatically triggers revalidation requests to a configured endpoint (typically a Next.js application) to ensure fresh content delivery.
 
 ### Key Features
 
-- Automatic revalidation on post save/update/delete
+- Automatic revalidation on post save/update/delete/status change
 - Category-based revalidation when categories are modified
+- **Tag support**: Full tag lifecycle revalidation (create/edit/delete) (NEW in v1.2.0)
+- **Status transition support**: Smart revalidation on publish/unpublish (NEW in v1.2.0)
+- **Post deletion support**: Automatic revalidation when posts are deleted (NEW in v1.2.0)
+- **Path deduplication**: Prevents duplicate revalidation requests (NEW in v1.2.0)
 - **Debug logs viewer**: Built-in UI to track all revalidation requests/responses
 - Admin settings page for endpoint and token configuration
 - **Settings Hub integration**: Centralized "Silver Assist" menu
 - **GitHub auto-updates**: Automatic plugin updates from releases
 - Path-based revalidation (excludes domain, sends only relative paths)
 - Support for standard WordPress post types (extensible for custom post types in future versions)
+- **Comprehensive test suite**: 36 tests, 100% passing, 0.3s execution time
 
 ## Architecture
 

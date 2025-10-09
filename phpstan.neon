@@ -8,3 +8,5 @@ parameters:
 		- silver-assist-post-revalidate.php
 	scanDirectories:
 		- vendor
+	excludePaths:
+		- build/*
