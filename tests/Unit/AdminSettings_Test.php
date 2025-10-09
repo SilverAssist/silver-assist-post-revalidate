@@ -189,10 +189,21 @@ class AdminSettings_Test extends WP_UnitTestCase {
 	public function test_check_updates_script_not_enqueued_on_other_pages(): void {
 		wp_set_current_user( self::$admin_user_id );
 		
+		// Dequeue any previously enqueued scripts to ensure clean state.
+		\wp_dequeue_script( 'silver-assist-check-updates' );
+		
 		$instance = AdminSettings::instance();
+		
+		// The script should only be enqueued on the Settings Hub dashboard.
+		// On other pages, the method returns early without enqueuing.
 		$instance->enqueue_check_updates_script( 'index.php' );
 		
-		$this->assertFalse( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
+		// Since we're passing 'index.php' (not 'toplevel_page_silver-assist'),
+		// the script should not be enqueued.
+		$this->assertFalse( 
+			wp_script_is( 'silver-assist-check-updates', 'enqueued' ),
+			'Script should not be enqueued on other pages'
+		);
 	}
 
 	/**
