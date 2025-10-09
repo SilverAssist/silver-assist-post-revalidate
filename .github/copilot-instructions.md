@@ -232,6 +232,59 @@ find Includes/ -name "*.php" -exec php -l {} \;
 6. Verify all admin settings work correctly
 7. Test revalidation with actual endpoint
 
+### GitHub Actions and CI/CD Workflow Management
+
+**IMPORTANT**: When working with GitHub Actions workflows (`.github/workflows/` files):
+
+- **Always use GitHub Desktop for commits that touch workflow files** due to OAuth permission limitations
+- The git CLI will reject pushes to workflow files with error: "refusing to allow an OAuth App to create or update workflow without `workflow` scope"
+- **Workflow for Actions changes**:
+  1. Make changes to `.github/workflows/` files
+  2. Commit other files via git CLI if needed
+  3. Use GitHub Desktop to commit and push workflow file changes
+  4. Monitor CI execution using `gh` CLI tools
+
+#### GitHub CLI (gh) for CI/CD Monitoring
+
+**Prerequisites**: Ensure `gh` CLI is installed locally for GitHub Actions monitoring
+
+**Common Commands**:
+- `gh run list --limit 3` - View last 3 workflow runs (most commonly used)
+- `gh run list --limit 5` - View recent workflow runs
+- `gh run view <run-id>` - View specific run details
+- `gh run watch <run-id>` - Monitor run in real-time
+- `gh run list --limit 1 --json databaseId,status,conclusion --jq '.[0]'` - Quick status of latest run
+- `gh run view --log --job=<job-id>` - View detailed job logs
+
+**Pager Management**:
+- Use `PAGER=cat` prefix to avoid interactive pager for long outputs
+- Example: `PAGER=cat gh run view --log --job=12345`
+- Example: `PAGER=cat gh run list --limit 3` - Avoid pager for run lists
+- Long CI logs may require pager navigation or output redirection
+- For quick monitoring, `gh run list --limit 3` is the most efficient command
+
+**Debugging Workflow**:
+1. Make changes and push via GitHub Desktop (for workflow files)
+2. Monitor with `gh run list --limit 3` to get latest run ID
+3. Watch progress with `gh run watch <run-id>`
+4. Debug issues with `PAGER=cat gh run view --log --job=<job-id>`
+5. For quick status checks, use `gh run list --limit 3` repeatedly
+
+**Example Monitoring Session**:
+```bash
+# Quick check of recent runs
+gh run list --limit 3
+
+# Watch the latest run in real-time
+gh run watch 17814735403
+
+# Get detailed logs without pager
+PAGER=cat gh run view --log --job=50645780001
+
+# Check latest run status (JSON output)
+PAGER=cat gh run list --limit 1 --json databaseId,status,conclusion --jq '.[0]'
+```
+
 ## Plugin Functionality
 
 ### Revalidation Triggers
