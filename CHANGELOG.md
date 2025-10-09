@@ -13,6 +13,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.2.0] - TBD
+
+### Added
+- **Revalidation Debug Logs**: Complete traceability system for revalidation requests
+  - Accordion-style debug section in admin settings page
+  - Displays last 100 revalidation requests (FIFO rotation)
+  - Shows request details (URL, method, headers, timeout) in formatted JSON
+  - Shows response details (status code, message, body, headers) in formatted JSON
+  - Color-coded status indicators (green for success, red for error)
+  - Timestamp for each request
+  - "Clear All Logs" button with AJAX confirmation
+  - Helps identify duplicate requests and track server responses
+  - Stores logs in WordPress options (`silver_assist_revalidate_logs`)
+  
+### Changed
+- Enhanced `revalidate_paths()` method to capture and log all request/response data
+- Admin settings page now includes debug section below configuration
+- **Refactored assets to external files**: Moved inline CSS and JavaScript to separate files
+  - CSS variables (design tokens) for consistent styling
+  - Better maintainability and separation of concerns
+  - Uses `wp_enqueue_style()` and `wp_enqueue_script()` properly
+  - Uses `wp_localize_script()` for internationalization
+
+### Technical
+- New `save_log_entry()` private method in Revalidate class
+- New `clear_logs()` static method in Revalidate class
+- New `render_debug_logs_section()` method in AdminSettings class
+- New `enqueue_admin_scripts()` method for proper asset loading
+- New `ajax_clear_logs()` AJAX handler in AdminSettings class
+- New `assets/css/admin-debug-logs.css` with CSS variables for design tokens
+- New `assets/js/admin-debug-logs.js` with accordion and AJAX functionality
+- Accordion functionality with jQuery for expanding/collapsing log details
+- Responsive CSS styling with mobile breakpoints
+- Build script updated to include `assets/` directory and validation
+
 ## [1.1.0] - 2025-10-08
 
 ### Added

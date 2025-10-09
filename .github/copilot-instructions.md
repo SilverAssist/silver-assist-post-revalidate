@@ -17,7 +17,10 @@ This WordPress plugin provides automatic cache revalidation for posts and catego
 
 - Automatic revalidation on post save/update/delete
 - Category-based revalidation when categories are modified
+- **Debug logs viewer**: Built-in UI to track all revalidation requests/responses
 - Admin settings page for endpoint and token configuration
+- **Settings Hub integration**: Centralized "Silver Assist" menu
+- **GitHub auto-updates**: Automatic plugin updates from releases
 - Path-based revalidation (excludes domain, sends only relative paths)
 - Support for standard WordPress post types (extensible for custom post types in future versions)
 
@@ -28,11 +31,22 @@ This WordPress plugin provides automatic cache revalidation for posts and catego
 ```
 silver-assist-post-revalidate/
 ├── .github/
-│   └── copilot-instructions.md
+│   ├── copilot-instructions.md
+│   └── workflows/
+│       └── release.yml         # GitHub Actions CI/CD
+├── assets/
+│   ├── css/
+│   │   └── admin-debug-logs.css  # Debug logs styling with CSS variables
+│   └── js/
+│       └── admin-debug-logs.js   # Accordion & AJAX functionality
 ├── Includes/
-│   ├── AdminSettings.php       # Admin settings page class
+│   ├── AdminSettings.php       # Admin settings page + debug logs UI
 │   ├── Plugin.php              # Main plugin initialization class
-│   └── Revalidate.php          # Core revalidation functionality
+│   ├── Revalidate.php          # Core revalidation functionality + logging
+│   └── Updater.php             # GitHub auto-update integration
+├── scripts/
+│   ├── build-release.sh        # Production build generator
+│   └── update-version.sh       # Automated version management
 ├── silver-assist-post-revalidate.php  # Main plugin file
 ├── composer.json               # Dependencies and PSR-4 autoloading
 ├── phpcs.xml                   # WordPress Coding Standards configuration
@@ -55,6 +69,9 @@ silver-assist-post-revalidate/
 - Extracts permalinks and category paths
 - Converts full URLs to relative paths
 - Sends revalidation requests to configured endpoint
+- **Logs all requests/responses**: Captures full request/response data for debugging
+- **Auto-rotation**: Maintains maximum 100 log entries (FIFO)
+- Stores logs in WordPress option: `silver_assist_revalidate_logs`
 
 #### 3. **AdminSettings.php** (Admin Interface)
 - Integrates with Settings Hub for centralized menu
@@ -63,12 +80,35 @@ silver-assist-post-revalidate/
 - Uses WordPress Settings API for secure option handling
 - Provides user-friendly interface for configuration
 - Falls back to standalone settings page if hub not available
+- **Debug Logs UI**: Accordion-style viewer for revalidation logs
+- **Asset Management**: Enqueues CSS/JS files properly with versioning
+- **AJAX Handler**: Clear logs functionality with nonce verification
 
 #### 4. **Updater.php** (GitHub Updates)
 - Integrates GitHub Updater package for automatic updates
 - Checks for new releases from GitHub repository
 - Provides automatic update notifications in WordPress admin
 - Handles plugin metadata for update system
+
+#### 5. **Assets (CSS & JavaScript)**
+
+##### **assets/css/admin-debug-logs.css**
+- **CSS Variables (Design Tokens)**: Centralized styling system
+  - Colors: `--sa-color-success`, `--sa-color-error`, `--sa-color-border`
+  - Spacing: `--sa-spacing-xs` through `--sa-spacing-2xl`
+  - Typography: `--sa-font-size-xs` through `--sa-font-size-md`
+  - Borders: `--sa-radius-sm`, `--sa-radius-md`
+- **Responsive Design**: Mobile breakpoints at 782px
+- **Status Colors**: Green for success (200-299), red for errors
+- **Modern CSS**: Flexbox layout, transitions, user-select
+
+##### **assets/js/admin-debug-logs.js**
+- **IIFE Pattern**: Self-contained, no global pollution
+- **jQuery Integration**: WordPress-style jQuery usage
+- **Accordion Functionality**: Toggle log details on click
+- **AJAX Clear Logs**: Confirmation dialog + server request
+- **i18n Ready**: Uses `wp_localize_script()` for translations
+- **Error Handling**: Proper success/error callbacks
 
 ### Dependencies
 

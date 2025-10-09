@@ -224,6 +224,15 @@ class Revalidate
 				$revalidate_url
 			);
 
+			$request_data = [
+				'url'     => $url,
+				'method'  => 'GET',
+				'headers' => [
+					'User-Agent' => 'Silver-Assist-Revalidate/' . SILVER_ASSIST_REVALIDATE_VERSION,
+				],
+				'timeout' => 30,
+			];
+
 			$response = \wp_remote_get(
 				$url,
 				[
@@ -233,7 +242,23 @@ class Revalidate
 				]
 			);
 
+			// Prepare log entry.
+			$log_entry = [
+				'timestamp'   => \current_time( 'mysql' ),
+				'path'        => $path,
+				'request'     => $request_data,
+				'response'    => [],
+				'status'      => 'error',
+				'status_code' => 0,
+			];
+
 			if ( \is_wp_error( $response ) ) {
+				$log_entry['response'] = [
+					'error'   => true,
+					'message' => $response->get_error_message(),
+					'code'    => $response->get_error_code(),
+				];
+
 				// Log error if WP_DEBUG is enabled.
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					/* translators: 1: path, 2: error message */
@@ -246,17 +271,77 @@ class Revalidate
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 					error_log( $message );
 				}
-			} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// Log success if WP_DEBUG is enabled.
-				/* translators: %s: revalidated path */
-				$message = \sprintf(
-					// phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Translator comment is present above sprintf().
-					\__( 'Successfully revalidated path: %s', 'silver-assist-revalidate-posts' ),
-					$path
-				);
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( $message );
+			} else {
+				$response_code = \wp_remote_retrieve_response_code( $response );
+				$response_body = \wp_remote_retrieve_body( $response );
+				$headers       = \wp_remote_retrieve_headers( $response );
+
+				$log_entry['status']      = ( $response_code >= 200 && $response_code < 300 ) ? 'success' : 'error';
+				$log_entry['status_code'] = $response_code;
+				$log_entry['response']    = [
+					'code'    => $response_code,
+					'message' => \wp_remote_retrieve_response_message( $response ),
+					'body'    => $response_body,
+					'headers' => is_array( $headers ) ? $headers : ( method_exists( $headers, 'getAll' ) ? $headers->getAll() : [] ),
+				];
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					// Log success if WP_DEBUG is enabled.
+					/* translators: %s: revalidated path */
+					$message = \sprintf(
+						// phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Translator comment is present above sprintf().
+						\__( 'Successfully revalidated path: %s', 'silver-assist-revalidate-posts' ),
+						$path
+					);
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( $message );
+				}
 			}
+
+			// Save log entry.
+			$this->save_log_entry( $log_entry );
 		}
+	}
+
+	/**
+	 * Saves a log entry to the database
+	 *
+	 * Maintains a rotating log with a maximum of 100 entries (FIFO).
+	 *
+	 * @since 1.2.0
+	 * @param array<string, mixed> $log_entry The log entry to save.
+	 * @return void
+	 */
+	private function save_log_entry( array $log_entry ): void
+	{
+		$logs = \get_option( 'silver_assist_revalidate_logs', [] );
+
+		// Ensure $logs is an array.
+		if ( ! is_array( $logs ) ) {
+			$logs = [];
+		}
+
+		// Add new log entry at the beginning (most recent first).
+		array_unshift( $logs, $log_entry );
+
+		// Limit to 100 entries (rotate old logs).
+		$max_logs = 100;
+		if ( count( $logs ) > $max_logs ) {
+			$logs = array_slice( $logs, 0, $max_logs );
+		}
+
+		// Save updated logs.
+		\update_option( 'silver_assist_revalidate_logs', $logs );
+	}
+
+	/**
+	 * Clears all stored logs
+	 *
+	 * @since 1.2.0
+	 * @return bool True if logs were cleared, false otherwise.
+	 */
+	public static function clear_logs(): bool
+	{
+		return \delete_option( 'silver_assist_revalidate_logs' );
 	}
 }

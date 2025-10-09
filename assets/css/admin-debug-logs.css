@@ -1,0 +1,217 @@
+/**
+ * Admin Debug Logs Styles
+ *
+ * Styles for the revalidation debug logs section in admin settings.
+ *
+ * @package RevalidatePosts
+ * @since 1.2.0
+ * @version 1.2.0
+ */
+
+:root {
+	/* Color Tokens */
+	--sa-color-success: #46b450;
+	--sa-color-success-bg: #d4edda;
+	--sa-color-success-text: #155724;
+	--sa-color-error: #dc3232;
+	--sa-color-error-bg: #f8d7da;
+	--sa-color-error-text: #721c24;
+	--sa-color-error-dark: #a00;
+	--sa-color-border: #ddd;
+	--sa-color-bg-light: #f9f9f9;
+	--sa-color-bg-lighter: #f7f7f7;
+	--sa-color-bg-hover: #f0f0f0;
+	--sa-color-text: #666;
+	--sa-color-text-dark: #555;
+
+	/* Spacing Tokens */
+	--sa-spacing-xs: 8px;
+	--sa-spacing-sm: 10px;
+	--sa-spacing-md: 12px;
+	--sa-spacing-lg: 15px;
+	--sa-spacing-xl: 20px;
+	--sa-spacing-2xl: 30px;
+
+	/* Border Radius Tokens */
+	--sa-radius-sm: 3px;
+	--sa-radius-md: 4px;
+
+	/* Typography Tokens */
+	--sa-font-size-xs: 11px;
+	--sa-font-size-sm: 12px;
+	--sa-font-size-md: 13px;
+	--sa-font-mono: 'Courier New', monospace;
+
+	/* Border Width */
+	--sa-border-width: 1px;
+	--sa-border-width-accent: 4px;
+}
+
+/* Debug Section Container */
+.sa-debug-section {
+	margin-top: var(--sa-spacing-2xl);
+}
+
+/* Debug Header (Title + Clear Button) */
+.sa-debug-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: var(--sa-spacing-lg);
+}
+
+/* Log Item Container */
+.sa-log-item {
+	border: var(--sa-border-width) solid var(--sa-color-border);
+	border-radius: var(--sa-radius-md);
+	margin-bottom: var(--sa-spacing-sm);
+	background: #fff;
+}
+
+/* Log Header (Clickable to expand) */
+.sa-log-header {
+	padding: var(--sa-spacing-md) var(--sa-spacing-lg);
+	cursor: pointer;
+	background: var(--sa-color-bg-lighter);
+	border-radius: var(--sa-radius-md) var(--sa-radius-md) 0 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	user-select: none;
+	transition: background-color 0.2s ease;
+}
+
+.sa-log-header:hover {
+	background: var(--sa-color-bg-hover);
+}
+
+/* Success Status Border */
+.sa-log-header.success {
+	border-left: var(--sa-border-width-accent) solid var(--sa-color-success);
+}
+
+/* Error Status Border */
+.sa-log-header.error {
+	border-left: var(--sa-border-width-accent) solid var(--sa-color-error);
+}
+
+/* Path Display */
+.sa-log-path {
+	font-weight: 600;
+	font-family: var(--sa-font-mono);
+	font-size: var(--sa-font-size-md);
+}
+
+/* Meta Information Container */
+.sa-log-meta {
+	display: flex;
+	gap: var(--sa-spacing-lg);
+	font-size: var(--sa-spacing-sm);
+	color: var(--sa-color-text);
+}
+
+/* Status Badge */
+.sa-log-status {
+	padding: 2px var(--sa-spacing-xs);
+	border-radius: var(--sa-radius-sm);
+	font-size: var(--sa-font-size-xs);
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.sa-log-status.success {
+	background: var(--sa-color-success-bg);
+	color: var(--sa-color-success-text);
+}
+
+.sa-log-status.error {
+	background: var(--sa-color-error-bg);
+	color: var(--sa-color-error-text);
+}
+
+/* Log Content (Expandable Section) */
+.sa-log-content {
+	display: none;
+	padding: var(--sa-spacing-lg);
+	border-top: var(--sa-border-width) solid var(--sa-color-border);
+}
+
+.sa-log-content.active {
+	display: block;
+}
+
+/* Log Section (Request/Response) */
+.sa-log-section {
+	margin-bottom: var(--sa-spacing-lg);
+}
+
+.sa-log-section:last-child {
+	margin-bottom: 0;
+}
+
+.sa-log-section h4 {
+	margin: 0 0 var(--sa-spacing-xs) 0;
+	font-size: var(--sa-font-size-md);
+	color: var(--sa-color-text-dark);
+}
+
+.sa-log-section textarea {
+	width: 100%;
+	font-family: var(--sa-font-mono);
+	font-size: var(--sa-font-size-sm);
+	background: var(--sa-color-bg-light);
+	border: var(--sa-border-width) solid var(--sa-color-border);
+	border-radius: var(--sa-radius-sm);
+	padding: var(--sa-spacing-sm);
+	resize: vertical;
+	line-height: 1.5;
+}
+
+/* No Logs Message */
+.sa-no-logs {
+	padding: var(--sa-spacing-xl);
+	text-align: center;
+	color: var(--sa-color-text);
+	background: var(--sa-color-bg-light);
+	border: var(--sa-border-width) solid var(--sa-color-border);
+	border-radius: var(--sa-radius-md);
+}
+
+.sa-no-logs p {
+	margin: 0;
+}
+
+/* Clear Logs Button */
+.sa-clear-logs {
+	color: var(--sa-color-error-dark);
+	transition: color 0.2s ease;
+}
+
+.sa-clear-logs:hover {
+	color: var(--sa-color-error);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+	.sa-log-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--sa-spacing-xs);
+	}
+
+	.sa-log-meta {
+		flex-direction: column;
+		gap: var(--sa-spacing-xs);
+		width: 100%;
+	}
+
+	.sa-debug-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--sa-spacing-sm);
+	}
+
+	.sa-debug-header h2 {
+		margin: 0;
+	}
+}

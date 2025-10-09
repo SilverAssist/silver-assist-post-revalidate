@@ -92,6 +92,12 @@ if [ -d "${PROJECT_ROOT}/languages" ]; then
     print_status "  ✓ Language files copied"
 fi
 
+# Assets (CSS and JavaScript)
+if [ -d "${PROJECT_ROOT}/assets" ]; then
+    cp -r "${PROJECT_ROOT}/assets" "$PACKAGE_DIR/"
+    print_status "  ✓ Assets (CSS/JS) copied"
+fi
+
 # Documentation
 for doc_file in README.md CHANGELOG.md LICENSE; do
     if [ -f "${PROJECT_ROOT}/${doc_file}" ]; then
@@ -417,6 +423,19 @@ if [ ! -d "${PACKAGE_DIR}/Includes" ]; then
     exit 1
 else
     print_status "  ✓ Includes/ directory included"
+fi
+
+# Check if assets directory exists
+if [ ! -d "${PACKAGE_DIR}/assets" ]; then
+    print_warning "assets/ directory missing from package"
+    print_warning "CSS and JavaScript files may not load properly"
+else
+    # Check for CSS and JS files
+    if [ -f "${PACKAGE_DIR}/assets/css/admin-debug-logs.css" ] && [ -f "${PACKAGE_DIR}/assets/js/admin-debug-logs.js" ]; then
+        print_success "  ✓ Assets/ directory included with CSS and JS files"
+    else
+        print_warning "  ⚠ Assets/ directory present but missing expected files"
+    fi
 fi
 
 print_success "  ✓ Package validation passed"

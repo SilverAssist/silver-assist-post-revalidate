@@ -13,7 +13,9 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 - ✅ **Path-Based**: Sends only relative paths (no domain) to your endpoint
 - ✅ **Secure**: Token-based authentication for endpoint requests
 - ✅ **Simple Configuration**: Easy-to-use admin settings page
-- ✅ **Debug Logging**: Optional debug logging when WP_DEBUG is enabled
+- ✅ **Debug Logs**: Built-in debug log viewer with accordion UI (see requests/responses)
+- ✅ **Centralized Settings**: Integrates with Silver Assist Settings Hub
+- ✅ **Automatic Updates**: GitHub-based auto-updates for seamless upgrades
 - ✅ **Modern PHP**: Built with PHP 8.3+ features and PSR-4 autoloading
 
 ## Requirements
@@ -92,6 +94,83 @@ GET https://your-endpoint.com/api/revalidate?token=YOUR_TOKEN&path=/blog/my-post
 **Parameters:**
 - `token`: Authentication token (from settings)
 - `path`: Relative path to revalidate (e.g., `/blog/my-post/`)
+
+## Debug Logs
+
+**New in v1.2.0**: Built-in debug log viewer for complete traceability!
+
+### Overview
+
+The Debug Logs section appears at the bottom of the settings page and displays all revalidation requests with full request/response details.
+
+### Features
+
+- 📊 **Accordion UI**: Click any log entry to expand and view details
+- 🎨 **Color-Coded Status**: Green for success (200-299), red for errors
+- 📝 **JSON Formatted**: Request and response data formatted for easy reading
+- ⏱️ **Timestamps**: Track when each revalidation occurred
+- 🗑️ **Clear Logs**: Button to remove all logs (with confirmation)
+- 🔄 **Auto-Rotation**: Maximum 100 entries kept (FIFO)
+
+### What's Logged
+
+Each log entry contains:
+
+**Request Details:**
+```json
+{
+  "url": "https://example.com/api/revalidate?token=xxx&path=/blog/post/",
+  "method": "GET",
+  "headers": {
+    "User-Agent": "Silver-Assist-Revalidate/1.2.0"
+  },
+  "timeout": 30
+}
+```
+
+**Response Details:**
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "body": "{\"revalidated\":true,\"path\":\"/blog/post/\"}",
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "no-cache"
+  }
+}
+```
+
+### Use Cases
+
+1. **Debugging**: See exactly what was sent and received
+2. **Duplicate Detection**: Identify if requests are being sent multiple times
+3. **Server Issues**: Check response codes and error messages
+4. **Performance Monitoring**: Track response times and success rates
+5. **Path Verification**: Ensure correct paths are being revalidated
+
+### Accessing Debug Logs
+
+1. Go to **Settings → Post Revalidate** (or **Silver Assist → Post Revalidate**)
+2. Scroll to the bottom of the page
+3. See the "Revalidation Debug Logs" section
+4. Click any log header to expand and view details
+
+### Visual Example
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Revalidation Debug Logs          [Clear All Logs]      │
+├─────────────────────────────────────────────────────────┤
+│ Showing 3 requests (most recent first). Max 100 kept.  │
+│                                                         │
+│ ✓ /blog/my-post/     SUCCESS (200)  2025-10-09 14:32  │ ← Click to expand
+│ ✗ /category/tech/    ERROR (500)    2025-10-09 14:31  │
+│ ✓ /blog/another/     SUCCESS (200)  2025-10-09 14:30  │
+└─────────────────────────────────────────────────────────┘
+```
+
+When expanded, you'll see formatted JSON for both request and response data.
 
 ## Example Next.js Handler
 
@@ -174,17 +253,35 @@ composer run test
 ```
 silver-assist-post-revalidate/
 ├── .github/
-│   └── copilot-instructions.md  # Project documentation
+│   ├── copilot-instructions.md  # Project documentation
+│   └── workflows/
+│       └── release.yml          # GitHub Actions CI/CD
+├── assets/
+│   ├── css/
+│   │   └── admin-debug-logs.css # Debug logs styling with design tokens
+│   └── js/
+│       └── admin-debug-logs.js  # Accordion & AJAX functionality
 ├── Includes/
-│   ├── AdminSettings.php        # Admin settings page
-│   ├── Plugin.php               # Main plugin class
-│   └── Revalidate.php           # Core revalidation logic
+│   ├── AdminSettings.php        # Admin settings page & debug UI
+│   ├── Plugin.php               # Main plugin initialization
+│   ├── Revalidate.php           # Core revalidation logic & logging
+│   └── Updater.php              # GitHub auto-update integration
+├── scripts/
+│   ├── build-release.sh         # Production build generator
+│   └── update-version.sh        # Automated version management
+├── vendor/                      # Composer dependencies (production)
+│   ├── silverassist/
+│   │   ├── wp-settings-hub/     # Centralized settings menu
+│   │   └── wp-github-updater/   # Auto-update system
+│   └── ...
 ├── silver-assist-post-revalidate.php  # Main plugin file
 ├── composer.json                # Dependencies & autoloading
 ├── phpcs.xml                    # Coding standards config
 ├── phpstan.neon                 # Static analysis config
+├── phpunit.xml                  # Unit testing config
 ├── README.md                    # This file
 ├── CHANGELOG.md                 # Version history
+├── LICENSE                      # Polyform Noncommercial License
 └── .gitignore                   # Git ignore rules
 ```
 
