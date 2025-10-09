@@ -7,7 +7,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.0.0
+ * @version 1.1.0
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
@@ -93,7 +93,7 @@ class AdminSettings
 	 * If the Settings Hub is available, register this plugin with it.
 	 * Otherwise, fall back to standalone settings page.
 	 *
-	 * @since 1.2.0
+	 * @since 1.1.0
 	 * @return void
 	 */
 	public function register_with_settings_hub(): void

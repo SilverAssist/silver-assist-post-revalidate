@@ -13,6 +13,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.1.0] - 2025-10-08
+
+### Added
+- **Settings Hub Integration**: Centralized "Silver Assist" settings menu
+  - Plugin now appears under unified "Silver Assist" menu in WordPress admin
+  - Dashboard with plugin cards showing version and description
+  - Auto-registration system with `register_with_settings_hub()` method
+  - Fallback to standalone settings page if Settings Hub is not available
+  - Dependencies installed from Packagist (`silverassist/wp-settings-hub ^1.0`)
+- **GitHub Updater Integration**: Automatic plugin updates from GitHub releases
+  - Update notifications in WordPress admin
+  - Seamless update experience
+  - Dependencies installed from Packagist (`silverassist/wp-github-updater ^1.1`)
+- **Version Update Script**: Automated version management (`scripts/update-version.sh`)
+  - Updates version numbers across all plugin files
+  - Interactive and CI/CD modes
+  - Validates semantic versioning
+  - Handles @version tags automatically
+- **Build Script Enhancements**: Improved production build process
+  - Automatic cleaning of Settings Hub package (removes dev files)
+  - Validation checks for Settings Hub inclusion
+  - Optimized vendor directory for smaller package size
+
+### Changed
+- AdminSettings now integrates with Settings Hub for centralized menu
+- Menu location moved from "Settings > Post Revalidate" to "Silver Assist > Post Revalidate"
+- Composer dependencies now installed from Packagist
+- Build script includes Settings Hub package cleanup and validation
+
+### Technical
+- New `Updater.php` class for GitHub updates integration
+- New `register_with_settings_hub()` method in AdminSettings class
+- Updated `composer.json` with Packagist dependencies
+- Enhanced `scripts/build-release.sh` with hub package cleaning
+- Added comprehensive documentation to `.github/copilot-instructions.md`
+
+### Dependencies
+- Added: `silverassist/wp-settings-hub: ^1.0` (from Packagist)
+- Added: `silverassist/wp-github-updater: ^1.1` (from Packagist)
+- Existing: `composer/installers: ^2.0`
+
 ## [1.0.1] - 2025-10-06
 
 ### Added

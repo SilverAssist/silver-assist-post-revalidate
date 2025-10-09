@@ -14,17 +14,8 @@
 		"php": ">=8.3",
 		"composer/installers": "^2.0",
 		"silverassist/wp-github-updater": "^1.1",
-		"silverassist/wp-settings-hub": "dev-master"
+		"silverassist/wp-settings-hub": "^1.0"
 	},
-	"repositories": [
-		{
-			"type": "path",
-			"url": "./packages/wp-settings-hub",
-			"options": {
-				"symlink": true
-			}
-		}
-	],
 	"require-dev": {
 		"brain/monkey": "^2.6",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",

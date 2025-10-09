@@ -10,7 +10,7 @@
 # @package RevalidatePosts
 # @since 1.0.0
 # @author Silver Assist
-# @version 1.0.0
+# @version 1.1.0
 ################################################################################
 
 # Colors for output
@@ -340,6 +340,35 @@ if [ -d "${PACKAGE_DIR}/vendor" ]; then
         fi
     fi
     
+    # Clean up Settings Hub package - keep only essential PHP files
+    HUB_DIR="${PACKAGE_DIR}/vendor/silverassist/wp-settings-hub"
+    if [ -d "$HUB_DIR" ]; then
+        print_status "  • Cleaning Settings Hub package..."
+        
+        # Remove git directory
+        rm -rf "$HUB_DIR/.git"
+        rm -rf "$HUB_DIR/.github"
+        
+        # Remove development files
+        rm -f "$HUB_DIR"/*.md 2>/dev/null || true
+        rm -f "$HUB_DIR"/*.txt 2>/dev/null || true
+        rm -f "$HUB_DIR"/*.xml 2>/dev/null || true
+        rm -f "$HUB_DIR"/*.neon 2>/dev/null || true
+        rm -f "$HUB_DIR"/.* 2>/dev/null || true
+        
+        # Remove examples and other non-essential directories
+        rm -rf "$HUB_DIR/examples" 2>/dev/null || true
+        rm -rf "$HUB_DIR/tests" 2>/dev/null || true
+        rm -rf "$HUB_DIR/docs" 2>/dev/null || true
+        
+        # Keep only src/ directory and composer.json
+        if [ -d "$HUB_DIR/src" ] && [ -f "$HUB_DIR/composer.json" ]; then
+            print_success "    ✓ Settings Hub cleaned (kept only src/ and composer.json)"
+        else
+            print_warning "    ⚠ Settings Hub structure unexpected"
+        fi
+    fi
+    
     print_success "  ✓ Vendor directory cleaned"
 fi
 
@@ -372,6 +401,14 @@ if [ ! -d "${PACKAGE_DIR}/vendor/silverassist/wp-github-updater" ]; then
     print_warning "Automatic updates may not work properly"
 else
     print_success "  ✓ GitHub updater package included"
+fi
+
+# Check if Settings Hub package is included
+if [ ! -d "${PACKAGE_DIR}/vendor/silverassist/wp-settings-hub" ]; then
+    print_warning "Settings Hub package not found in vendor directory"
+    print_warning "Centralized settings menu may not work properly"
+else
+    print_success "  ✓ Settings Hub package included"
 fi
 
 # Check if required directories exist

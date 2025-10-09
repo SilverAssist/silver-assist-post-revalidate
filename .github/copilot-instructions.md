@@ -57,10 +57,40 @@ silver-assist-post-revalidate/
 - Sends revalidation requests to configured endpoint
 
 #### 3. **AdminSettings.php** (Admin Interface)
-- Creates settings page under Settings menu
+- Integrates with Settings Hub for centralized menu
+- Creates settings page under "Silver Assist" menu
 - Manages two options: `revalidate_endpoint` and `revalidate_token`
 - Uses WordPress Settings API for secure option handling
 - Provides user-friendly interface for configuration
+- Falls back to standalone settings page if hub not available
+
+#### 4. **Updater.php** (GitHub Updates)
+- Integrates GitHub Updater package for automatic updates
+- Checks for new releases from GitHub repository
+- Provides automatic update notifications in WordPress admin
+- Handles plugin metadata for update system
+
+### Dependencies
+
+The plugin uses Composer for dependency management:
+
+1. **silverassist/wp-github-updater** (^1.1)
+   - Automatic plugin updates from GitHub releases
+   - Update notifications in WordPress admin
+   - Seamless update experience
+
+2. **silverassist/wp-settings-hub** (^1.0)
+   - Centralized "Silver Assist" settings menu
+   - Unified dashboard for all Silver Assist plugins
+   - Auto-registration system
+   - Plugin cards with version display
+   - Optional navigation tabs between plugins
+
+3. **composer/installers** (^2.0)
+   - WordPress plugin installer
+   - Handles proper WordPress directory structure
+
+**Installation**: Dependencies are installed from Packagist using `composer install`
 
 ## Code Standards & Quality
 
@@ -249,6 +279,105 @@ Future versions may support custom post types. To add:
 - Test endpoint independently with curl/Postman
 - Check PHP error logs for syntax issues
 
+## Automation Scripts
+
+### Version Update Script
+
+The project includes an automated version updater script: `scripts/update-version.sh`
+
+**Purpose**: Automatically updates version numbers across all plugin files in one command.
+
+**Usage**:
+```bash
+./scripts/update-version.sh <new-version> [--no-confirm]
+
+# Examples
+./scripts/update-version.sh 1.2.0              # Interactive mode (asks for confirmation)
+./scripts/update-version.sh 1.2.0 --no-confirm # CI/CD mode (no prompts)
+./scripts/update-version.sh --help             # Show help
+```
+
+**Files Updated**:
+1. **Main plugin file** (`silver-assist-post-revalidate.php`):
+   - Plugin header: `Version: X.X.X`
+   - Constant: `SILVER_ASSIST_REVALIDATE_VERSION`
+   - PHPDoc `@version` tag
+
+2. **PHP files** (`Includes/*.php`):
+   - All `@version` tags in PHPDoc blocks
+
+3. **Script files** (`scripts/*.sh`):
+   - All `@version` tags in script headers
+
+4. **Documentation** (`README.md`):
+   - Version references (if present)
+
+**Important Notes**:
+- Uses `perl` for reliable cross-platform compatibility (handles macOS sed quirks)
+- Only updates `@version` tags, NOT `@since` tags
+- `@since` tags should be set manually when files are first created
+- Creates `.bak` backup files during processing
+- Supports deferred modifications (for self-modification)
+- Validates semantic versioning format (e.g., `1.2.0`)
+
+**Version Update Workflow**:
+```bash
+# 1. Update version numbers
+./scripts/update-version.sh 1.2.0
+
+# 2. Review changes
+git diff
+
+# 3. Update CHANGELOG.md manually (REQUIRED)
+# Add new version section with changes
+
+# 4. Run quality checks
+vendor/bin/phpcs
+vendor/bin/phpstan analyse Includes/ --no-progress
+vendor/bin/phpunit
+
+# 5. Generate production build
+bash scripts/build-release.sh
+
+# 6. Commit and tag
+git add .
+git commit -m "chore: Update version to 1.2.0"
+git tag -a v1.2.0 -m "Release v1.2.0"
+
+# 7. Push to GitHub
+git push origin master --tags
+```
+
+**Never Forget**:
+- Always update `CHANGELOG.md` manually before committing
+- Test the plugin after version update
+- Run all validation tools
+- Create meaningful release notes for GitHub
+
+### Build Release Script
+
+Location: `scripts/build-release.sh`
+
+**Purpose**: Creates production-ready ZIP package for WordPress distribution.
+
+**Features**:
+- Installs production dependencies only (`composer install --no-dev`)
+- Copies all necessary plugin files
+- Cleans up development files (tests, docs, etc.)
+- Optimizes vendor packages (Settings Hub, GitHub Updater)
+- Validates package completeness
+- Generates `readme.txt` for WordPress.org
+- Creates ZIP archive in `build/` directory
+
+**Validation Checks**:
+- Main plugin file exists
+- Version matches expected version
+- Composer autoloader included
+- Required packages present (GitHub Updater, Settings Hub)
+- Source code directory (Includes/) included
+
+**Important**: Script includes Settings Hub integration from Packagist.
+
 ## Support & Contribution
 
 ### Reporting Issues
@@ -271,5 +400,6 @@ GPL v2 or later
 
 ---
 
-**Last Updated**: October 6, 2025  
-**Version**: 1.0.0
+**Last Updated**: October 8, 2025  
+**Version**: 1.1.0
+```
