@@ -68,7 +68,8 @@ class Plugin_Test extends WP_UnitTestCase {
 		$result   = $instance->add_settings_link( $links );
 
 		$this->assertCount( 1, $result );
-		$this->assertStringContainsString( 'admin.php', $result[0] );
+		// WordPress generates options-general.php for standalone settings pages.
+		$this->assertStringContainsString( 'options-general.php', $result[0] );
 		$this->assertStringContainsString( 'page=silver-assist-revalidate', $result[0] );
 	}
 
