@@ -13,6 +13,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.2.1] - 2025-10-09
+
+### Added
+- **Check Updates Button**: Manual update checking with one-click convenience
+  - Added "Check Updates" button on Settings Hub dashboard card
+  - Integration with `silverassist/wp-settings-hub` v1.1.0 custom actions feature
+  - AJAX-powered update check with immediate visual feedback
+  - Automatic redirect to updates page when new version available
+  - New method: `AdminSettings::render_check_updates_script()` for AJAX handling
+
+### Changed
+- **Updated Dependencies**:
+  - Upgraded `silverassist/wp-settings-hub` from v1.0.0 to v1.1.0
+  - Added support for custom dashboard action buttons
+
+### Technical Details
+- **AdminSettings.php** (lines 118-127): Added `actions` parameter in `register_plugin()` with "Check Updates" button configuration
+- **AdminSettings.php** (lines 211-272): New `render_check_updates_script()` method with complete AJAX handling
+  - Uses wp-github-updater's `manualVersionCheck()` endpoint
+  - Security: nonce verification with `silver_assist_revalidate_version_check`
+  - User feedback: Button state changes (Checking... → Update Available! / Up to Date / Error)
+  - Error handling: Network errors and API failures with 3-second auto-reset
+  - Redirect: Automatic navigation to `plugins.php?plugin_status=upgrade` on update availability
+
 ## [1.2.0] - 2025-10-09
 
 ### Added

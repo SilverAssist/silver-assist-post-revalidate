@@ -4,7 +4,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.2.1
  */
 
 namespace RevalidatePosts\Tests\Unit;
@@ -165,5 +165,84 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		// Verify logs are empty.
 		$logs = get_option( 'silver_assist_revalidate_logs', [] );
 		$this->assertEmpty( $logs );
+	}
+
+	/**
+	 * Test that check updates script is enqueued on correct page.
+	 *
+	 * @return void
+	 */
+	public function test_check_updates_script_enqueued_on_dashboard(): void {
+		wp_set_current_user( self::$admin_user_id );
+		
+		$instance = AdminSettings::instance();
+		$instance->enqueue_check_updates_script( 'toplevel_page_silver-assist' );
+		
+		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
+	}
+
+	/**
+	 * Test that check updates script is NOT enqueued on other pages.
+	 *
+	 * @return void
+	 */
+	public function test_check_updates_script_not_enqueued_on_other_pages(): void {
+		wp_set_current_user( self::$admin_user_id );
+		
+		$instance = AdminSettings::instance();
+		$instance->enqueue_check_updates_script( 'index.php' );
+		
+		$this->assertFalse( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
+	}
+
+	/**
+	 * Test that check updates script has correct localization data.
+	 *
+	 * @return void
+	 */
+	public function test_check_updates_script_has_localization_data(): void {
+		wp_set_current_user( self::$admin_user_id );
+		
+		$instance = AdminSettings::instance();
+		$instance->enqueue_check_updates_script( 'toplevel_page_silver-assist' );
+		
+		global $wp_scripts;
+		
+		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
+		$this->assertArrayHasKey( 'silver-assist-check-updates', $wp_scripts->registered );
+		
+		$localized_data = $wp_scripts->registered['silver-assist-check-updates']->extra['data'] ?? '';
+		$this->assertStringContainsString( 'silverAssistCheckUpdatesData', $localized_data );
+	}
+
+	/**
+	 * Test that render_check_updates_script outputs correct JavaScript.
+	 *
+	 * @return void
+	 */
+	public function test_render_check_updates_script_outputs_javascript(): void {
+		$instance = AdminSettings::instance();
+		
+		ob_start();
+		$instance->render_check_updates_script( 'silver-assist-revalidate' );
+		$output = ob_get_clean();
+		
+		$this->assertStringContainsString( 'silverAssistCheckUpdates', $output );
+		$this->assertStringContainsString( 'sa-action-silver-assist-revalidate-Check-Updates', $output );
+	}
+
+	/**
+	 * Test that admin scripts are enqueued on settings page.
+	 *
+	 * @return void
+	 */
+	public function test_admin_scripts_enqueued_on_settings_page(): void {
+		wp_set_current_user( self::$admin_user_id );
+		
+		$instance = AdminSettings::instance();
+		$instance->enqueue_admin_scripts( 'toplevel_page_silver-assist-revalidate' );
+		
+		$this->assertTrue( wp_style_is( 'silver-assist-debug-logs', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'silver-assist-debug-logs', 'enqueued' ) );
 	}
 }

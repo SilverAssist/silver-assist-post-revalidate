@@ -7,7 +7,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.2.1
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
@@ -86,6 +86,7 @@ class AdminSettings
 		\add_action( 'init', [ $this, 'register_with_settings_hub' ] );
 		\add_action( 'admin_init', [ $this, 'register_settings' ] );
 		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
+		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_check_updates_script' ] );
 		\add_action( 'wp_ajax_silver_assist_clear_logs', [ $this, 'ajax_clear_logs' ] );
 	}
 
@@ -119,6 +120,13 @@ class AdminSettings
 				'description' => \__( 'Automatic cache revalidation for posts and categories. Triggers revalidation requests when content is created, updated, or deleted.', 'silver-assist-revalidate-posts' ),
 				'version'     => SILVER_ASSIST_REVALIDATE_VERSION,
 				'tab_title'   => \__( 'Post Revalidate', 'silver-assist-revalidate-posts' ),
+				'actions'     => [
+					[
+						'label'    => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
+						'callback' => [ $this, 'render_check_updates_script' ],
+						'class'    => 'button button-secondary',
+					],
+				],
 			]
 		);
 	}
@@ -193,6 +201,69 @@ class AdminSettings
 			[ $this, 'render_token_field' ],
 			$this->page_slug,
 			'silver_assist_revalidate_main'
+		);
+	}
+
+	/**
+	 * Render JavaScript for Check Updates button
+	 *
+	 * Outputs inline JavaScript call to the external script function.
+	 *
+	 * @since 1.2.1
+	 * @param string $plugin_slug The plugin slug for context.
+	 * @return void
+	 */
+	public function render_check_updates_script( string $plugin_slug ): void
+	{
+		// Get nonce for AJAX request (must match Updater.php configuration).
+		$nonce     = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
+		$button_id = "sa-action-{$plugin_slug}-Check-Updates";
+
+		// Call the external JavaScript function.
+		echo "silverAssistCheckUpdates('" . \esc_js( $button_id ) . "', '" . \esc_js( $nonce ) . "');";
+	}
+
+	/**
+	 * Enqueue check updates script
+	 *
+	 * Loads the JavaScript file for handling check updates button.
+	 *
+	 * @since 1.2.1
+	 * @param string $hook The current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_check_updates_script( string $hook ): void
+	{
+		// Only load on Silver Assist dashboard page.
+		if ( 'toplevel_page_silver-assist' !== $hook ) {
+			return;
+		}
+
+		// Enqueue the check updates script.
+		\wp_enqueue_script(
+			'silver-assist-check-updates',
+			\plugin_dir_url( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ) . 'assets/js/admin-check-updates.js',
+			[ 'jquery' ],
+			SILVER_ASSIST_REVALIDATE_VERSION,
+			true
+		);
+
+		// Localize script with translations and data.
+		\wp_localize_script(
+			'silver-assist-check-updates',
+			'silverAssistCheckUpdatesData',
+			[
+				'ajaxUrl'              => \admin_url( 'admin-ajax.php' ),
+				'ajaxAction'           => 'silver_assist_revalidate_check_version',
+				'updatesPageUrl'       => \admin_url( 'plugins.php?plugin_status=upgrade' ),
+				'checkUpdatesText'     => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
+				'checkingText'         => \__( 'Checking...', 'silver-assist-revalidate-posts' ),
+				'updateAvailableText'  => \__( 'Update Available!', 'silver-assist-revalidate-posts' ),
+				'upToDateText'         => \__( 'Up to Date', 'silver-assist-revalidate-posts' ),
+				'errorText'            => \__( 'Error', 'silver-assist-revalidate-posts' ),
+				'errorCheckingMessage' => \__( 'Error checking for updates. Please try again.', 'silver-assist-revalidate-posts' ),
+				'networkErrorMessage'  => \__( 'Network error. Please check your connection.', 'silver-assist-revalidate-posts' ),
+			]
 		);
 	}
 
