@@ -1,50 +1,72 @@
 <?php
 /**
- * Unit tests for Revalidate class.
+ * Tests for Revalidate class using WordPress test suite.
  *
  * @package RevalidatePosts
  * @since 1.0.0
+ * @version 1.2.0
  */
 
 namespace RevalidatePosts\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use RevalidatePosts\Revalidate;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertIsType;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
+use WP_UnitTestCase;
 
 /**
- * Test case for Revalidate class.
+ * Test case for Revalidate class using real WordPress environment.
  *
  * @since 1.0.0
  */
-class Revalidate_Test extends TestCase {
-	use AssertIsType;
+class Revalidate_Test extends WP_UnitTestCase {
 
 	/**
-	 * Set up test environment before each test.
+	 * Test post ID.
 	 *
+	 * @var int
+	 */
+	private static $post_id;
+
+	/**
+	 * Test category ID.
+	 *
+	 * @var int
+	 */
+	private static $category_id;
+
+	/**
+	 * Set up before class runs.
+	 *
+	 * @param mixed $factory Factory instance.
 	 * @return void
 	 */
-	protected function setUp(): void {
-		parent::setUp();
-		Monkey\setUp();
-		
-		// Define version constant if not already defined.
-		if ( ! defined( 'SILVER_ASSIST_REVALIDATE_VERSION' ) ) {
-			define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.0.1' );
-		}		// Mock translation function globally to return the text as-is.
-		Functions\when( '__' )->returnArg( 1 );
+	public static function wpSetUpBeforeClass( $factory ): void {
+		// Create test post.
+		self::$post_id = $factory->post->create(
+[
+'post_title'  => 'Test Post for Revalidation',
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			]
+		);
+
+		// Create test category.
+		self::$category_id = $factory->category->create(
+[
+'name' => 'Test Category',
+				'slug' => 'test-category',
+			]
+		);
 	}
 
 	/**
-	 * Tear down test environment after each test.
+	 * Clean up after each test.
 	 *
 	 * @return void
 	 */
-	protected function tearDown(): void {
-		Monkey\tearDown();
+	public function tearDown(): void {
+		delete_option( 'revalidate_endpoint' );
+		delete_option( 'revalidate_token' );
+		delete_option( 'silver_assist_revalidate_logs' );
 		parent::tearDown();
 	}
 
@@ -62,84 +84,178 @@ class Revalidate_Test extends TestCase {
 	}
 
 	/**
-	 * Test that revalidation is triggered when post is saved.
+	 * Test that draft posts do not trigger revalidation.
 	 *
 	 * @return void
 	 */
-	public function test_post_save_triggers_revalidation(): void {
-		$post_id = 123;
-		$post_permalink = 'https://example.com/blog/test-post/';
-		$relative_path = '/blog/test-post/';
-		
-		// Mock WordPress functions.
-		Functions\expect( 'wp_is_post_autosave' )
-			->once()
-			->with( $post_id )
-			->andReturn( false );
-		
-		Functions\expect( 'wp_is_post_revision' )
-			->once()
-			->with( $post_id )
-			->andReturn( false );
-		
-		// Create WP_Post instance (now using our stub).
-		$mock_post = new \WP_Post(
-			(object) [
-				'ID'          => $post_id,
-				'post_status' => 'publish',
+	public function test_draft_post_does_not_trigger_revalidation(): void {
+		$draft_post_id = $this->factory->post->create(
+[
+'post_title'  => 'Draft Post',
+				'post_status' => 'draft',
 				'post_type'   => 'post',
-				'post_title'  => 'Test Post',
 			]
 		);
-		
-		Functions\expect( 'get_post' )
-			->once()
-			->with( $post_id )
-			->andReturn( $mock_post );
-		
-		Functions\expect( 'get_permalink' )
-			->once()
-			->with( $post_id )
-			->andReturn( $post_permalink );
-		
-		Functions\expect( 'get_the_category' )
-			->once()
-			->with( $post_id )
-			->andReturn( [] ); // No categories for simplicity.
-		
-		Functions\expect( 'home_url' )
-			->once()
-			->andReturn( 'https://example.com' );
-		
-		// Mock both get_option calls with specific return values (called with 1 param only).
-		Functions\when( 'get_option' )->alias( function ( $option ) {
-			if ( 'revalidate_endpoint' === $option ) {
-				return 'https://api.example.com/revalidate';
-			}
-			if ( 'revalidate_token' === $option ) {
-				return 'test-token';
-			}
-			return false;
-		} );
-		
-		Functions\expect( 'add_query_arg' )
-			->once()
-			->andReturn( 'https://api.example.com/revalidate?token=test-token&path=/blog/test-post/' );
-		
-		Functions\expect( 'wp_remote_get' )
-			->once()
-			->andReturn( [ 'response' => [ 'code' => 200 ] ] );
-		
-		Functions\expect( 'is_wp_error' )
-			->once()
-			->andReturn( false );
-		
-		// Simulate post save.
+
+		// Configure endpoint and token.
+		update_option( 'revalidate_endpoint', 'https://example.com/api/revalidate' );
+		update_option( 'revalidate_token', 'test-token' );
+
 		$instance = Revalidate::instance();
-		$instance->on_post_saved( $post_id );
-		
-		// If we reach here without exceptions, the test passes.
-		$this->assertTrue( true, 'Post save should trigger revalidation process' );
+		$instance->on_post_saved( $draft_post_id );
+
+		// Check that no logs were created for draft post.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertEmpty( $logs, 'Draft posts should not trigger revalidation' );
+	}
+
+	/**
+	 * Test that published posts trigger revalidation.
+	 *
+	 * @return void
+	 */
+	public function test_published_post_creates_log_entry(): void {
+		// Configure endpoint and token.
+		update_option( 'revalidate_endpoint', 'https://example.com/api/revalidate' );
+		update_option( 'revalidate_token', 'test-token' );
+
+		$instance = Revalidate::instance();
+		$instance->on_post_saved( self::$post_id );
+
+		// Check that log was created.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertNotEmpty( $logs, 'Published post should create log entry' );
+		$this->assertCount( 1, $logs, 'Should have exactly one log entry' );
+	}
+
+	/**
+	 * Test that log entry contains required fields.
+	 *
+	 * @return void
+	 */
+	public function test_log_entry_contains_required_fields(): void {
+		// Clear existing logs.
+		delete_option( 'silver_assist_revalidate_logs' );
+
+		// Configure endpoint and token.
+		update_option( 'revalidate_endpoint', 'https://example.com/api/revalidate' );
+		update_option( 'revalidate_token', 'test-token' );
+
+		$instance = Revalidate::instance();
+		$instance->on_post_saved( self::$post_id );
+
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertCount( 1, $logs );
+
+		$log = $logs[0];
+		$this->assertArrayHasKey( 'timestamp', $log );
+		$this->assertArrayHasKey( 'path', $log );
+		$this->assertArrayHasKey( 'status', $log );
+		$this->assertArrayHasKey( 'status_code', $log );
+		$this->assertArrayHasKey( 'request', $log );
+		$this->assertArrayHasKey( 'response', $log );
+	}
+
+	/**
+	 * Test that logs respect FIFO rotation (max 100 entries).
+	 *
+	 * @return void
+	 */
+	public function test_logs_respect_fifo_rotation(): void {
+		// Create 100 log entries.
+		$logs = [];
+		for ( $i = 0; $i < 100; $i++ ) {
+			$logs[] = [
+				'timestamp'   => current_time( 'mysql' ),
+				'path'        => "/post-{$i}/",
+				'status'      => 'success',
+				'status_code' => 200,
+				'request'     => [],
+				'response'    => [],
+			];
+		}
+		update_option( 'silver_assist_revalidate_logs', $logs );
+
+		// Configure and trigger one more revalidation.
+		update_option( 'revalidate_endpoint', 'https://example.com/api/revalidate' );
+		update_option( 'revalidate_token', 'test-token' );
+
+		$instance = Revalidate::instance();
+		$instance->on_post_saved( self::$post_id );
+
+		// Check that we still have max 100 entries.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertCount( 100, $logs, 'Should maintain max 100 log entries (FIFO)' );
+
+		// Newest log should be first.
+		$newest_log = $logs[0];
+		$this->assertStringContainsString( 'test-post-for-revalidation', $newest_log['path'] );
+	}
+
+	/**
+	 * Test clearing logs.
+	 *
+	 * @return void
+	 */
+	public function test_clear_logs(): void {
+		// Create test logs.
+		$logs = [
+			[
+				'timestamp'   => current_time( 'mysql' ),
+				'path'        => '/test/',
+				'status'      => 'success',
+				'status_code' => 200,
+				'request'     => [],
+				'response'    => [],
+			],
+		];
+		update_option( 'silver_assist_revalidate_logs', $logs );
+
+		// Clear logs.
+		$result = Revalidate::clear_logs();
+
+		$this->assertTrue( $result );
+
+		// Verify logs are cleared.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertEmpty( $logs );
+	}
+
+	/**
+	 * Test that empty endpoint skips revalidation.
+	 *
+	 * @return void
+	 */
+	public function test_empty_endpoint_skips_revalidation(): void {
+		// Clear endpoint and token.
+		delete_option( 'revalidate_endpoint' );
+		delete_option( 'revalidate_token' );
+		delete_option( 'silver_assist_revalidate_logs' );
+
+		$instance = Revalidate::instance();
+		$instance->on_post_saved( self::$post_id );
+
+		// Check that no logs were created.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertEmpty( $logs, 'Empty endpoint should skip revalidation' );
+	}
+
+	/**
+	 * Test category save triggers revalidation.
+	 *
+	 * @return void
+	 */
+	public function test_category_save_triggers_revalidation(): void {
+		// Configure endpoint and token.
+		update_option( 'revalidate_endpoint', 'https://example.com/api/revalidate' );
+		update_option( 'revalidate_token', 'test-token' );
+
+		$instance = Revalidate::instance();
+		$instance->on_category_saved( self::$category_id );
+
+		// Check that log was created.
+		$logs = get_option( 'silver_assist_revalidate_logs', [] );
+		$this->assertNotEmpty( $logs, 'Category save should create log entry' );
 	}
 
 	/**
@@ -148,114 +264,11 @@ class Revalidate_Test extends TestCase {
 	 * @return void
 	 */
 	public function test_url_to_relative_path_conversion(): void {
-		$full_url = 'https://example.com/blog/my-post/';
+		$full_url = 'https://example.com/blog/my-post/'\;
 		$expected_path = '/blog/my-post/';
 		
-		// wp_parse_url() is a native PHP function, not WordPress - it works without mocks.
 		$result = parse_url( $full_url, PHP_URL_PATH );
 		
 		$this->assertSame( $expected_path, $result, 'Full URL should be converted to relative path' );
-	}
-
-	/**
-	 * Test that draft posts do not trigger revalidation.
-	 *
-	 * @return void
-	 */
-	public function test_draft_post_does_not_trigger_revalidation(): void {
-		$post_id = 456;
-		
-		Functions\expect( 'wp_is_post_autosave' )
-			->once()
-			->with( $post_id )
-			->andReturn( false );
-		
-		Functions\expect( 'wp_is_post_revision' )
-			->once()
-			->with( $post_id )
-			->andReturn( false );
-		
-		// Create draft WP_Post instance.
-		$mock_draft_post = new \WP_Post(
-			(object) [
-				'ID'          => $post_id,
-				'post_status' => 'draft',
-				'post_type'   => 'post',
-				'post_title'  => 'Draft Post',
-			]
-		);
-		
-		Functions\expect( 'get_post' )
-			->once()
-			->with( $post_id )
-			->andReturn( $mock_draft_post );
-		
-		// Should NOT call get_permalink or wp_remote_get for draft posts.
-		Functions\expect( 'get_permalink' )
-			->never();
-		
-		Functions\expect( 'wp_remote_get' )
-			->never();
-		
-		$instance = Revalidate::instance();
-		$instance->on_post_saved( $post_id );
-		
-		$this->assertTrue( true, 'Draft posts should not trigger revalidation' );
-	}
-
-	/**
-	 * Test that revalidation handles empty endpoint gracefully.
-	 *
-	 * @return void
-	 */
-	public function test_empty_endpoint_skips_revalidation(): void {
-		$post_id = 789;
-		$post_permalink = 'https://example.com/test/';
-		
-		Functions\expect( 'wp_is_post_autosave' )
-			->once()
-			->andReturn( false );
-		
-		Functions\expect( 'wp_is_post_revision' )
-			->once()
-			->andReturn( false );
-		
-		// Create WP_Post instance.
-		$mock_post = new \WP_Post(
-			(object) [
-				'ID'          => $post_id,
-				'post_status' => 'publish',
-				'post_type'   => 'post',
-				'post_title'  => 'Test Post',
-			]
-		);
-		
-		Functions\expect( 'get_post' )
-			->once()
-			->andReturn( $mock_post );
-		
-		Functions\expect( 'get_permalink' )
-			->once()
-			->andReturn( $post_permalink );
-		
-		Functions\expect( 'get_the_category' )
-			->once()
-			->andReturn( [] );
-		
-		Functions\expect( 'home_url' )
-			->once()
-			->andReturn( 'https://example.com' );
-		
-		// Mock get_option to return false for endpoint (simulates empty config).
-		Functions\when( 'get_option' )->justReturn( false );
-		
-		// These should NEVER be called after empty endpoint check.
-		Functions\expect( 'wp_remote_get' )
-			->never();
-		
-		$instance = Revalidate::instance();
-		$instance->on_post_saved( $post_id );
-		
-		$this->assertTrue( true, 'Empty endpoint should skip revalidation' );
 	}
 }

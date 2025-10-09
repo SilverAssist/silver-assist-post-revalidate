@@ -285,6 +285,107 @@ silver-assist-post-revalidate/
 └── .gitignore                   # Git ignore rules
 ```
 
+## Testing
+
+The plugin uses PHPUnit with the WordPress test suite for comprehensive integration testing.
+
+### Prerequisites
+
+- MySQL/MariaDB server
+- SVN (Subversion) client
+- WordPress test suite installed
+
+### Installing WordPress Test Suite
+
+1. Install the WordPress test suite using the provided script:
+
+```bash
+bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
+```
+
+**Parameters**:
+- `wordpress_test` - Test database name (will be created)
+- `root` - MySQL username
+- `''` - MySQL password (empty in this example)
+- `localhost` - MySQL host
+- `latest` - WordPress version (or specific version like `6.4.2`)
+
+The script will:
+- Download WordPress core to `/tmp/wordpress/`
+- Install WordPress test suite to `/tmp/wordpress-tests-lib/`
+- Create test database configuration
+
+2. Set environment variable (optional, if not using `/tmp/wordpress-tests-lib`):
+
+```bash
+export WP_TESTS_DIR=/path/to/wordpress-tests-lib
+```
+
+Or update `phpunit.xml`:
+
+```xml
+<env name="WP_TESTS_DIR" value="/path/to/wordpress-tests-lib"/>
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+vendor/bin/phpunit
+
+# Run specific test file
+vendor/bin/phpunit tests/Unit/Plugin_Test.php
+
+# Run with code coverage (requires Xdebug or PCOV)
+vendor/bin/phpunit --coverage-html coverage/
+```
+
+### Test Structure
+
+```
+tests/
+├── bootstrap.php             # WordPress test suite bootstrap
+└── Unit/
+    ├── Plugin_Test.php       # Plugin class tests
+    ├── AdminSettings_Test.php # Settings & options tests
+    └── Revalidate_Test.php   # Core revalidation logic tests
+```
+
+### Writing Tests
+
+All tests extend `WP_UnitTestCase` for real WordPress integration:
+
+```php
+<?php
+namespace RevalidatePosts\Tests\Unit;
+
+use WP_UnitTestCase;
+use RevalidatePosts\Plugin;
+
+class Plugin_Test extends WP_UnitTestCase {
+    
+    public function test_something(): void {
+        // Create real WordPress posts, users, etc.
+        $post_id = $this->factory->post->create();
+        
+        // Test with real WordPress functions
+        $this->assertTrue( get_post( $post_id ) !== null );
+    }
+}
+```
+
+### Test Coverage
+
+Current tests cover:
+
+- ✅ **Plugin Class**: Singleton pattern, settings link, initialization
+- ✅ **AdminSettings Class**: Options storage, sanitization, settings registration, AJAX handlers, script/style enqueuing
+- ✅ **Revalidate Class**: Post/category hooks, logging system, FIFO rotation, HTTP requests
+
+### Continuous Integration
+
+Tests run automatically on GitHub Actions for pull requests and releases.
+
 ## Debugging
 
 Enable WordPress debug mode to see detailed logs:

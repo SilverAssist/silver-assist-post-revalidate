@@ -17,9 +17,7 @@
 		"silverassist/wp-settings-hub": "^1.0"
 	},
 	"require-dev": {
-		"brain/monkey": "^2.6",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
-		"mockery/mockery": "^1.6",
 		"php-stubs/wordpress-stubs": "^6.6",
 		"php-stubs/wordpress-tests-stubs": "^6.6",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",

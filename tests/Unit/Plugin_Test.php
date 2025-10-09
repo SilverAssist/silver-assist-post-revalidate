@@ -1,52 +1,23 @@
 <?php
 /**
- * Unit tests for Plugin class.
+ * Tests for Plugin class using WordPress test suite.
  *
  * @package RevalidatePosts
  * @since 1.0.0
+ * @version 1.2.0
  */
 
 namespace RevalidatePosts\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use RevalidatePosts\Plugin;
-use Yoast\PHPUnitPolyfills\Polyfills\AssertIsType;
-use Brain\Monkey;
-use Brain\Monkey\Functions;
+use WP_UnitTestCase;
 
 /**
- * Test case for Plugin class.
+ * Test case for Plugin class using real WordPress environment.
  *
  * @since 1.0.0
  */
-class Plugin_Test extends TestCase {
-	use AssertIsType;
-
-	/**
-	 * Set up test environment before each test.
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		Monkey\setUp();
-		
-		// Mock is_admin to return false for unit tests.
-		Functions\when( 'is_admin' )->justReturn( false );
-		Functions\when( 'add_action' )->justReturn( true );
-		Functions\when( 'add_filter' )->justReturn( true );
-		Functions\when( 'plugin_basename' )->returnArg();
-	}
-
-	/**
-	 * Tear down test environment after each test.
-	 *
-	 * @return void
-	 */
-	protected function tearDown(): void {
-		Monkey\tearDown();
-		parent::tearDown();
-	}
+class Plugin_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test singleton instance creation.
@@ -77,10 +48,6 @@ class Plugin_Test extends TestCase {
 	 * @return void
 	 */
 	public function test_add_settings_link_adds_link(): void {
-		Functions\when( 'admin_url' )->returnArg();
-		Functions\when( 'esc_url' )->returnArg();
-		Functions\when( 'esc_html__' )->justReturn( 'Settings' );
-
 		$instance = Plugin::instance();
 		$links    = [ 'deactivate' => '<a href="#">Deactivate</a>' ];
 		$result   = $instance->add_settings_link( $links );
@@ -88,5 +55,57 @@ class Plugin_Test extends TestCase {
 		$this->assertCount( 2, $result );
 		$this->assertStringContainsString( 'Settings', $result[0] );
 		$this->assertStringContainsString( 'silver-assist-revalidate', $result[0] );
+	}
+
+	/**
+	 * Test that settings link contains proper URL.
+	 *
+	 * @return void
+	 */
+	public function test_settings_link_contains_proper_url(): void {
+		$instance = Plugin::instance();
+		$links    = [];
+		$result   = $instance->add_settings_link( $links );
+
+		$this->assertCount( 1, $result );
+		$this->assertStringContainsString( 'admin.php', $result[0] );
+		$this->assertStringContainsString( 'page=silver-assist-revalidate', $result[0] );
+	}
+
+	/**
+	 * Test that settings link is properly escaped.
+	 *
+	 * @return void
+	 */
+	public function test_settings_link_is_properly_escaped(): void {
+		$instance = Plugin::instance();
+		$links    = [];
+		$result   = $instance->add_settings_link( $links );
+
+		$this->assertCount( 1, $result );
+		$this->assertStringNotContainsString( '<script>', $result[0] );
+		$this->assertMatchesRegularExpression( '/<a href="[^"]*"/', $result[0] );
+	}
+
+	/**
+	 * Test that plugin constants are defined.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_constants_are_defined(): void {
+		$this->assertTrue( defined( 'SILVER_ASSIST_REVALIDATE_VERSION' ) );
+		$this->assertTrue( defined( 'SILVER_ASSIST_REVALIDATE_PLUGIN_DIR' ) );
+		$this->assertNotEmpty( SILVER_ASSIST_REVALIDATE_VERSION );
+		$this->assertNotEmpty( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR );
+	}
+
+	/**
+	 * Test that plugin version constant is valid semver.
+	 *
+	 * @return void
+	 */
+	public function test_plugin_version_is_valid_semver(): void {
+		$version = SILVER_ASSIST_REVALIDATE_VERSION;
+		$this->assertMatchesRegularExpression( '/^\d+\.\d+\.\d+$/', $version );
 	}
 }
