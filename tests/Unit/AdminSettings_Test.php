@@ -233,13 +233,15 @@ class AdminSettings_Test extends WP_UnitTestCase {
 	 */
 	public function test_render_check_updates_script_outputs_javascript(): void {
 		$instance = AdminSettings::instance();
-		
+
 		ob_start();
 		$instance->render_check_updates_script( 'silver-assist-revalidate' );
 		$output = ob_get_clean();
-		
+
 		$this->assertStringContainsString( 'silverAssistCheckUpdates', $output );
-		$this->assertStringContainsString( 'sa-action-silver-assist-revalidate-Check-Updates', $output );
+		// The button ID is generated using sanitize_key(), which converts
+		// "Check Updates" to "checkupdates" (lowercase, no spaces/special chars).
+		$this->assertStringContainsString( 'sa-action-silver-assist-revalidate-checkupdates', $output );
 	}
 
 	/**
