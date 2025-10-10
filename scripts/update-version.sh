@@ -11,7 +11,7 @@
 # @package RevalidatePosts
 # @since 1.1.0
 # @author Silver Assist
-# @version 1.2.2
+# @version 1.3.0
 ###############################################################################
 
 # Note: Removed set -e to allow script to continue on minor errors/warnings

@@ -13,6 +13,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.3.0] - 2025-10-09
+
+### Added
+- **Comprehensive Integration Tests (Phase 3)**: Added 20 new integration tests for WordPress compatibility
+  - **Asset Management Tests** (`AssetsLoading_Test.php`): 8 tests verifying CSS/JS loading, versioning, localization
+    - Debug logs CSS/JS load only on settings page
+    - Assets not loaded on other admin pages
+    - Version strings for cache busting
+    - Localized script data structure and nonces
+    - jQuery dependency declarations
+  - **Status Transitions Tests** (`StatusTransitions_Test.php`): 6 tests for post status workflows
+    - Publish→Trash and Trash→Publish trigger revalidation
+    - Draft→Draft does NOT trigger revalidation
+    - Pending→Publish and Future→Publish trigger revalidation
+    - Hook argument validation (3 args, priority 10)
+  - **Gutenberg Integration Tests** (`GutenbergIntegration_Test.php`): 6 tests for Block Editor compatibility
+    - Multiple rapid saves trigger only ONE revalidation (cooldown)
+    - Meta updates during save do NOT duplicate revalidation
+    - Taxonomy saves during post save do NOT duplicate
+    - `processed_posts` array prevents same-request duplicates
+    - Block editor autosaves filtered correctly
+    - Classic Editor behavior matches Block Editor
+
+### Changed
+- **Test Suite**: Expanded from 106 to 126 tests (47 Unit + 79 Integration)
+- **Test Coverage**: All Phase 3 WordPress integration tests completed
+- **Test Execution**: Full suite runs in ~6 seconds with 100% pass rate
+
+### Technical Details
+- All integration tests use HTTP mocking (`pre_http_request` filter) for fast execution
+- Proper test isolation with setUp/tearDown cleanup
+- Manual hook triggering with `do_action` for precise control
+- Asset tearDown cleanup prevents cross-test contamination
+- Status transition tests handle WordPress state changes correctly
+
 ## [1.2.2] - 2025-10-09
 
 ### Added

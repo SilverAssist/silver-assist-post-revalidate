@@ -7,7 +7,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.2.2
+ * @version 1.3.0
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
