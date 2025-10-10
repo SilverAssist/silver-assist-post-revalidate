@@ -208,9 +208,9 @@ update_file "${PROJECT_ROOT}/silver-assist-post-revalidate.php" \
     "s/Version: [0-9]+\\.[0-9]+\\.[0-9]+/Version: ${NEW_VERSION}/g" \
     "plugin header"
 
-# Update constant
+# Update constant - FIXED: Removed excessive escaping of single quotes
 update_file "${PROJECT_ROOT}/silver-assist-post-revalidate.php" \
-    "s/define\\( 'SILVER_ASSIST_REVALIDATE_VERSION', '[0-9]+\\.[0-9]+\\.[0-9]+'\\)/define( 'SILVER_ASSIST_REVALIDATE_VERSION', '${NEW_VERSION}')/g" \
+    "s/define\\( 'SILVER_ASSIST_REVALIDATE_VERSION', '[0-9]+\\.[0-9]+\\.[0-9]+' \\)/define( 'SILVER_ASSIST_REVALIDATE_VERSION', '${NEW_VERSION}' )/g" \
     "plugin constant"
 
 # Update @version tag
