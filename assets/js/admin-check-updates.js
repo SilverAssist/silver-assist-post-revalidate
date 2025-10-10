@@ -23,57 +23,60 @@
 	 * @returns {void}
 	 */
 	window.silverAssistCheckUpdates = function () {
-		// Get localized data
+		// Get localized data.
 		const { ajaxurl, nonce, updateUrl, strings = {} } =
 			window.silverAssistCheckUpdatesData || {};
 
-		// Validate configuration
-		if (!ajaxurl || !nonce) {
+		// Validate configuration.
+		if ( ! ajaxurl || ! nonce ) {
 			console.error(
 				"Silver Assist Post Revalidate: Update check configuration missing"
 			);
 			return;
 		}
 
-		// Send AJAX request
-		$.ajax({
-			url: ajaxurl,
-			type: "POST",
-			data: {
-				action: "silver_assist_revalidate_check_version",
-				nonce: nonce,
-			},
-			success: function (response) {
-				if (response.success) {
-					if (response.data.update_available) {
-						// Update available - redirect to Updates page
-						const message =
-							strings.updateAvailable ||
-							"Update available! Redirecting to Updates page...";
-						alert(message);
-						window.location.href = updateUrl;
+		// Send AJAX request.
+		$.ajax(
+			{
+				url: ajaxurl,
+				type: "POST",
+				data: {
+					action: "silver_assist_revalidate_check_version",
+					nonce: nonce,
+				},
+				success: function ( response ) {
+					if ( response.success ) {
+						if ( response.data.update_available ) {
+							// Update available - redirect to Updates page.
+							const message =
+								strings.updateAvailable ||
+								"Update available! Redirecting to Updates page...";
+							alert( message );
+							window.location.href = updateUrl;
+						} else {
+							// No update available.
+							const message =
+								strings.upToDate || "You're up to date!";
+							alert( message );
+						}
 					} else {
-						// No update available
+						// Error response from server.
 						const message =
-							strings.upToDate || "You're up to date!";
-						alert(message);
+							response.data.message ||
+							strings.checkError ||
+							"Error checking updates. Please try again.";
+						alert( message );
 					}
-				} else {
-					// Error response from server
+				},
+				error: function () {
+					// Connection error.
 					const message =
-						response.data.message ||
-						strings.checkError ||
-						"Error checking updates. Please try again.";
-					alert(message);
-				}
-			},
-			error: function () {
-				// Connection error
-				const message =
-					strings.connectError ||
-					"Error connecting to update server.";
-				alert(message);
-			},
-		});
+						strings.connectError ||
+						"Error connecting to update server.";
+					alert( message );
+				},
+			}
+		);
 	};
-})(jQuery);
+
+})( jQuery );

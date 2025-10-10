@@ -718,7 +718,11 @@ class AdminSettings
 			);
 		} catch ( \Exception $e ) {
 			// Log error for debugging.
-			\error_log( 'Silver Assist Post Revalidate - Update Check Error: ' . $e->getMessage() );
+			if ( \defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error -- Debug logging.
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Exception message for logging.
+				\trigger_error( 'Silver Assist Post Revalidate - Update Check Error: ' . $e->getMessage(), E_USER_WARNING );
+			}
 
 			\wp_send_json_error(
 				[
