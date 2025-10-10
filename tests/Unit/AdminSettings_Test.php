@@ -209,4 +209,52 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		$this->assertTrue( wp_style_is( 'silver-assist-debug-logs', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'silver-assist-debug-logs', 'enqueued' ) );
 	}
+
+	/**
+	 * Test that sanitize_token preserves existing token when masked value submitted.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_token_preserves_existing_when_masked(): void {
+		$instance      = AdminSettings::instance();
+		$original_token = 'secret-token-12345';
+		
+		// Save original token.
+		update_option( 'revalidate_token', $original_token );
+		
+		// Simulate submitting masked value (with bullet points).
+		$masked_input = '••••••••••••••12345';
+		$result       = $instance->sanitize_token( $masked_input );
+		
+		$this->assertSame( $original_token, $result, 'Masked token should preserve existing token' );
+	}
+
+	/**
+	 * Test that sanitize_token accepts new token value.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_token_accepts_new_value(): void {
+		$instance  = AdminSettings::instance();
+		$new_token = 'new-secret-token-67890';
+		
+		$result = $instance->sanitize_token( $new_token );
+		
+		$this->assertSame( $new_token, $result, 'New token should be sanitized and returned' );
+	}
+
+	/**
+	 * Test that sanitize_token sanitizes malicious input.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_token_removes_malicious_content(): void {
+		$instance       = AdminSettings::instance();
+		$malicious_input = '<script>alert("xss")</script>token123';
+		
+		$result = $instance->sanitize_token( $malicious_input );
+		
+		$this->assertStringNotContainsString( '<script>', $result, 'Script tags should be removed' );
+		$this->assertStringNotContainsString( 'alert', $result, 'Alert function should be removed' );
+	}
 }

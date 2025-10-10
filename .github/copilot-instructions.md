@@ -27,7 +27,11 @@ This WordPress plugin provides automatic cache revalidation for posts, categorie
 - **GitHub auto-updates**: Automatic plugin updates from releases
 - Path-based revalidation (excludes domain, sends only relative paths)
 - Support for standard WordPress post types (extensible for custom post types in future versions)
-- **Comprehensive test suite**: 36 tests, 100% passing, 0.3s execution time
+- **Comprehensive test suite**: 70 tests (47 Unit + 23 Integration), 100% passing
+- **Token masking security**: Password field with show/hide toggle (v1.2.3)
+  - Sanitization tested: XSS protection, masked value detection, new token acceptance
+  - UI components: Visual masking (last 4 chars), toggle button, jQuery functionality
+  - Security layers: Browser-native masking, visual masking, optional reveal, sanitization
 
 ## Architecture
 
@@ -88,6 +92,11 @@ silver-assist-post-revalidate/
 - **Debug Logs UI**: Accordion-style viewer for revalidation logs
 - **Asset Management**: Enqueues CSS/JS files properly with versioning
 - **AJAX Handler**: Clear logs functionality with nonce verification
+- **Token Security** (v1.2.3):
+  - `sanitize_token()`: Detects masked values (bullet points), preserves existing token
+  - `render_token_field()`: Password input with visual masking (shows last 4 chars)
+  - Toggle button: Show/hide token with jQuery, dashicons icons
+  - Inline JavaScript: Type switching (password ↔ text), value switching (masked ↔ original)
 
 #### 4. **Updater.php** (GitHub Updates)
 - Integrates GitHub Updater package for automatic updates
@@ -138,6 +147,52 @@ The plugin uses Composer for dependency management:
 **Installation**: Dependencies are installed from Packagist using `composer install`
 
 ## Code Standards & Quality
+
+### ⚠️ MANDATORY: Test-Driven Development (TDD)
+
+**CRITICAL RULE**: ALL new functionality MUST follow strict TDD methodology.
+
+#### TDD Process (Red-Green-Refactor)
+1. **RED**: Write failing test FIRST
+   - Test must fail for the right reason
+   - Verify test failure before any implementation
+   - Use `--stop-on-failure` to catch failures immediately
+
+2. **GREEN**: Write minimum code to pass
+   - Implement ONLY enough code to make test pass
+   - Do NOT add extra features
+   - Run test to verify it passes
+
+3. **REFACTOR**: Improve code quality
+   - Clean up implementation
+   - Remove duplication
+   - Improve naming and structure
+   - Tests must still pass after refactor
+
+#### TDD Rules
+- **NEVER write implementation code before tests**
+- **NEVER write tests after implementation** (that's validation, not TDD)
+- **One test at a time**: Write test → Make it pass → Next test
+- **Test behavior, not implementation**: Focus on what, not how
+- **Run tests frequently**: After every small change
+
+#### TDD Violations
+- ❌ Writing implementation first, then adding tests
+- ❌ Writing all tests at once, then implementing
+- ❌ Skipping test phase for "simple" features
+- ❌ Modifying tests to match implementation (should be opposite)
+
+#### When to Use TDD
+- ✅ ALL new features (no exceptions)
+- ✅ ALL bug fixes (write failing test reproducing bug first)
+- ✅ ALL refactoring (tests verify behavior unchanged)
+- ✅ ALL security features (token masking, sanitization, etc.)
+
+#### Test Coverage Standards
+- **Unit Tests**: Test individual methods in isolation
+- **Integration Tests**: Test component interactions
+- **Security Tests**: Test sanitization, XSS protection, capability checks
+- **Target**: 100% coverage of critical paths
 
 ### PHP Coding Standards
 

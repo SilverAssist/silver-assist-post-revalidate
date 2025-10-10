@@ -192,7 +192,7 @@ class AdminSettings
 			'revalidate_token',
 			[
 				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
+				'sanitize_callback' => [ $this, 'sanitize_token' ],
 				'default'           => '',
 			]
 		);
@@ -287,6 +287,28 @@ class AdminSettings
 	}
 
 	/**
+	 * Sanitize token field
+	 *
+	 * Preserves the existing token if the submitted value is masked (contains bullet points).
+	 * This prevents the masked placeholder from overwriting the actual token.
+	 *
+	 * @since 1.2.3
+	 * @param string $input The token value to sanitize.
+	 * @return string Sanitized token or existing token if masked value submitted
+	 */
+	public function sanitize_token( string $input ): string
+	{
+		// Check if input contains bullet points (masked value).
+		if ( strpos( $input, '•' ) !== false ) {
+			// Return existing token, don't overwrite with masked value.
+			return \get_option( 'revalidate_token', '' );
+		}
+
+		// Sanitize new token value.
+		return \sanitize_text_field( $input );
+	}
+
+	/**
 	 * Render endpoint field
 	 *
 	 * @since 1.0.0
@@ -313,23 +335,54 @@ class AdminSettings
 	/**
 	 * Render token field
 	 *
+	 * Displays the token field with security masking. Shows only last 4 characters
+	 * when a token exists, with a toggle button to reveal/hide the full token.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function render_token_field(): void
 	{
-		$value = \get_option( 'revalidate_token', '' );
+		$value         = \get_option( 'revalidate_token', '' );
+		$has_token     = ! empty( $value );
+		$masked_value  = '';
+		$display_value = $value;
+
+		if ( $has_token ) {
+			// Show only last 4 characters for security.
+			$token_length = strlen( $value );
+			if ( $token_length > 4 ) {
+				$masked_value  = str_repeat( '•', $token_length - 4 ) . substr( $value, -4 );
+				$display_value = $masked_value;
+			}
+		}
 		?>
-		<input 
-			type="text" 
-			name="revalidate_token" 
-			id="revalidate_token" 
-			value="<?php echo \esc_attr( $value ); ?>" 
-			class="regular-text"
-			placeholder="<?php \esc_attr_e( 'Enter authentication token', 'silver-assist-revalidate-posts' ); ?>"
-		/>
+		<div class="silver-assist-token-field-wrapper" style="display: flex; align-items: center; gap: 10px;">
+			<input 
+				type="password" 
+				name="revalidate_token" 
+				id="revalidate_token" 
+				value="<?php echo \esc_attr( $display_value ); ?>" 
+				class="regular-text"
+				placeholder="<?php \esc_attr_e( 'Enter authentication token', 'silver-assist-revalidate-posts' ); ?>"
+				data-original-value="<?php echo \esc_attr( $value ); ?>"
+				data-masked-value="<?php echo \esc_attr( $masked_value ); ?>"
+				autocomplete="off"
+			/>
+			<?php if ( $has_token ) : ?>
+				<button 
+					type="button" 
+					id="toggle-token-visibility" 
+					class="button button-secondary"
+					aria-label="<?php \esc_attr_e( 'Toggle token visibility', 'silver-assist-revalidate-posts' ); ?>"
+				>
+					<span class="dashicons dashicons-visibility" style="margin-top: 3px;"></span>
+					<span class="toggle-text"><?php \esc_html_e( 'Show', 'silver-assist-revalidate-posts' ); ?></span>
+				</button>
+			<?php endif; ?>
+		</div>
 		<p class="description">
-			<?php \esc_html_e( 'The authentication token required by the revalidation endpoint.', 'silver-assist-revalidate-posts' ); ?>
+			<?php \esc_html_e( 'The authentication token required by the revalidation endpoint. Token is masked for security.', 'silver-assist-revalidate-posts' ); ?>
 		</p>
 		<?php
 	}
@@ -443,6 +496,46 @@ class AdminSettings
 				'clearingText'   => \__( 'Clearing...', 'silver-assist-revalidate-posts' ),
 				'errorMessage'   => \__( 'Error clearing logs.', 'silver-assist-revalidate-posts' ),
 			]
+		);
+
+		// Add inline script for token visibility toggle.
+		\wp_add_inline_script(
+			'silver-assist-debug-logs',
+			"
+			jQuery(document).ready(function($) {
+				const tokenInput = $('#revalidate_token');
+				const toggleBtn = $('#toggle-token-visibility');
+				
+				if (tokenInput.length && toggleBtn.length) {
+					let isVisible = false;
+					const originalValue = tokenInput.data('original-value');
+					const maskedValue = tokenInput.data('masked-value');
+					
+					toggleBtn.on('click', function(e) {
+						e.preventDefault();
+						isVisible = !isVisible;
+						
+						if (isVisible) {
+							tokenInput.attr('type', 'text').val(originalValue);
+							toggleBtn.find('.dashicons').removeClass('dashicons-visibility').addClass('dashicons-hidden');
+							toggleBtn.find('.toggle-text').text('" . \esc_js( \__( 'Hide', 'silver-assist-revalidate-posts' ) ) . "');
+						} else {
+							tokenInput.attr('type', 'password').val(maskedValue);
+							toggleBtn.find('.dashicons').removeClass('dashicons-hidden').addClass('dashicons-visibility');
+							toggleBtn.find('.toggle-text').text('" . \esc_js( \__( 'Show', 'silver-assist-revalidate-posts' ) ) . "');
+						}
+					});
+					
+					// Reset to masked value on input change (when user starts typing).
+					tokenInput.on('input', function() {
+						if ($(this).val() !== originalValue && $(this).val() !== maskedValue) {
+							tokenInput.data('masked-value', '');
+							toggleBtn.hide();
+						}
+					});
+				}
+			});
+			"
 		);
 	}
 
