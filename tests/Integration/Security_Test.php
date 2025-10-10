@@ -5,16 +5,14 @@
  * Tests access control, capability checks, and security for admin pages and AJAX handlers.
  *
  * @package RevalidatePosts
+ * @subpackage Tests\Integration
  * @since 1.2.2
  * @version 1.2.2
- * @group integration
- * @group security
  */
 
 namespace RevalidatePosts\Tests\Integration;
 
 use RevalidatePosts\AdminSettings;
-use RevalidatePosts\Revalidate;
 use WP_UnitTestCase;
 
 /**
