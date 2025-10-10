@@ -13,6 +13,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.2.2] - 2025-10-09
+
+### Added
+- **Cross-Request Deduplication**: Transient-based cooldown to prevent duplicate revalidations
+  - 5-second cooldown per path using WordPress transients
+  - Prevents multiple HTTP requests from Gutenberg/Block Editor within short timeframe
+  - Automatic cleanup of transients after cooldown period
+  - New method: `set_cooldown_disabled(bool $disable)` for testing
+  - Works alongside existing single-request deduplication (`processed_posts` array)
+
+### Fixed
+- **Duplicate Revalidation Logs**: Eliminated duplicate logs from multiple HTTP requests
+  - Added transient check before sending revalidation requests
+  - Skips revalidation if same path was processed within last 5 seconds
+  - Debug logging for skipped paths (when `WP_DEBUG` enabled)
+  - Maintains idempotent behavior at CloudFront level
+
+### Technical Details
+- **Revalidate.php** (line 48): Added `disable_cooldown` flag property for test mode
+- **Revalidate.php** (lines 82-94): New `set_cooldown_disabled()` method for testing
+- **Revalidate.php** (lines 454-471): Transient-based cooldown logic in `revalidate_paths()`
+  - Checks `get_transient('sa_revalidate_' . md5($path))`
+  - Sets transient with 5-second expiration before revalidation
+  - Respects `disable_cooldown` flag for testing
+- **Revalidate_Test.php** (lines 88-100): Updated `setUp()` to disable cooldown during tests
+- **Revalidate_Test.php** (lines 106-111): Updated `tearDown()` to re-enable cooldown
+- All 44 tests passing with new deduplication system
+
+### Why This Matters
+- **Reduced API Calls**: Prevents unnecessary duplicate requests to revalidation endpoint
+- **Better Logs**: Cleaner debug logs without confusing duplicates
+- **Performance**: Reduces server load from rapid-fire Gutenberg saves
+- **Safety**: Maintains existing single-request deduplication for meta/taxonomy saves
+- **Testing**: Cleanly disables cooldown during test suite execution
+
 ## [1.2.1] - 2025-10-09
 
 ### Added

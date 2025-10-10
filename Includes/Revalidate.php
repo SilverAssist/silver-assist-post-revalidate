@@ -7,7 +7,7 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.2.1
+ * @version 1.2.2
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
@@ -35,6 +35,22 @@ class Revalidate
 	private static ?Revalidate $instance = null;
 
 	/**
+	 * Posts already processed in this request to prevent duplicate revalidation
+	 *
+	 * @since 1.2.2
+	 * @var array<int, bool>
+	 */
+	private array $processed_posts = [];
+
+	/**
+	 * Flag to disable transient cooldown for testing
+	 *
+	 * @since 1.2.2
+	 * @var bool
+	 */
+	private bool $disable_cooldown = false;
+
+	/**
 	 * Gets the singleton instance
 	 *
 	 * @since 1.0.0
@@ -59,6 +75,35 @@ class Revalidate
 	private function __construct()
 	{
 		$this->init_hooks();
+	}
+
+	/**
+	 * Reset processed posts cache
+	 *
+	 * Clears the internal cache of processed posts. Useful for testing
+	 * or when you need to force revalidation of the same post again.
+	 *
+	 * @since 1.2.2
+	 * @return void
+	 */
+	public function reset_processed_posts(): void
+	{
+		$this->processed_posts = [];
+	}
+
+	/**
+	 * Set cooldown mode
+	 *
+	 * Enables or disables the transient-based cooldown. Useful for testing
+	 * or when you need to force immediate revalidation without delays.
+	 *
+	 * @since 1.2.2
+	 * @param bool $disable Whether to disable the cooldown.
+	 * @return void
+	 */
+	public function set_cooldown_disabled( bool $disable ): void
+	{
+		$this->disable_cooldown = $disable;
 	}
 
 	/**
@@ -97,6 +142,12 @@ class Revalidate
 	 */
 	public function on_post_saved( int $post_id ): void
 	{
+		// Prevent duplicate revalidation within the same request.
+		// WordPress often fires save_post multiple times for a single edit.
+		if ( isset( $this->processed_posts[ $post_id ] ) ) {
+			return;
+		}
+
 		// Skip autosaves and revisions.
 		if ( \wp_is_post_autosave( $post_id ) || \wp_is_post_revision( $post_id ) ) {
 			return;
@@ -112,6 +163,9 @@ class Revalidate
 		if ( ! in_array( $post->post_type, $allowed_post_types, true ) ) {
 			return;
 		}
+
+		// Mark this post as processed.
+		$this->processed_posts[ $post_id ] = true;
 
 		$paths = [];
 
@@ -393,6 +447,7 @@ class Revalidate
 	 * Revalidates specified paths by sending requests to configured endpoint
 	 *
 	 * Sends GET requests to the revalidation endpoint with token and path parameters.
+	 * Uses transients to prevent duplicate revalidations of the same path within a short timeframe.
 	 *
 	 * @since 1.0.0
 	 * @param array<int, string> $paths Array of paths to revalidate.
@@ -416,6 +471,28 @@ class Revalidate
 		}
 
 		foreach ( $paths as $path ) {
+			// Check if this path was revalidated recently (within 5 seconds).
+			// Skip cooldown check if disabled (e.g., during testing).
+			if ( ! $this->disable_cooldown ) {
+				$transient_key = 'sa_revalidate_' . md5( $path );
+				if ( \get_transient( $transient_key ) ) {
+					// Skip this path - it was already revalidated recently.
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						/* translators: %s: path that was skipped */
+						$message = \sprintf(
+							// phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Translator comment is present above sprintf().
+							\__( 'Skipping recent revalidation for path: %s', 'silver-assist-revalidate-posts' ),
+							$path
+						);
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log( $message );
+					}
+					continue;
+				}
+
+				// Set transient to prevent duplicate revalidations for 5 seconds.
+				\set_transient( $transient_key, true, 5 );
+			}
 			$url = \add_query_arg(
 				[
 					'token' => $revalidate_token,

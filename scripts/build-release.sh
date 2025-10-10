@@ -10,7 +10,7 @@
 # @package RevalidatePosts
 # @since 1.0.0
 # @author Silver Assist
-# @version 1.2.1
+# @version 1.2.2
 ################################################################################
 
 # Colors for output

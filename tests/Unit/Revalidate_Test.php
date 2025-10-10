@@ -85,19 +85,33 @@ class Revalidate_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Clean up after each test.
+	 * Set up test environment
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void {
-		delete_option( 'revalidate_endpoint' );
-		delete_option( 'revalidate_token' );
-		delete_option( 'silver_assist_revalidate_logs' );
-		remove_filter( 'pre_http_request', [ $this, 'mock_http_response' ] );
-		parent::tearDown();
+	protected function setUp(): void
+	{
+		parent::setUp();
+
+		// Disable cooldown for all tests to prevent transient interference.
+		Revalidate::instance()->set_cooldown_disabled( true );
 	}
 
 	/**
+	 * Tear down test environment
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void
+	{
+		// Clear processed posts cache to ensure tests don't interfere with each other.
+		Revalidate::instance()->reset_processed_posts();
+
+		// Re-enable cooldown after tests.
+		Revalidate::instance()->set_cooldown_disabled( false );
+
+		parent::tearDown();
+	}	/**
 	 * Mock HTTP response to prevent actual network requests.
 	 *
 	 * @param false|array|WP_Error $preempt Whether to preempt an HTTP request. Default false.
