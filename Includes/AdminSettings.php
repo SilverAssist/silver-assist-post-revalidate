@@ -227,8 +227,8 @@ class AdminSettings
 	/**
 	 * Render update check script for Settings Hub action button
 	 *
-	 * Outputs inline JavaScript that triggers an AJAX update check when called
-	 * by the Settings Hub action button. Integrates with wp-github-updater.
+	 * Enqueues external JavaScript file and localizes data for AJAX update checking.
+	 * Follows WordPress best practices for script enqueuing.
 	 *
 	 * @since 1.2.1
 	 * @return void
@@ -242,39 +242,32 @@ class AdminSettings
 			return;
 		}
 
-		$nonce = \wp_create_nonce( 'silver_assist_revalidate_version_check' );
-		?>
-		<script type="text/javascript">
-		(($) => {
-			"use strict";
-			
-			// Trigger update check immediately when action button is clicked
-			$.ajax({
-				url: ajaxurl,
-				type: "POST",
-				data: {
-					action: "silver_assist_revalidate_check_version",
-					nonce: "<?php echo \esc_js( $nonce ); ?>"
-				},
-				success: (response) => {
-					if (response.success) {
-						if (response.data.update_available) {
-							alert("<?php echo \esc_js( \__( 'Update available! Redirecting to Updates page...', 'silver-assist-revalidate-posts' ) ); ?>");
-							window.location.href = "<?php echo \esc_url( \admin_url( 'update-core.php' ) ); ?>";
-						} else {
-							alert("<?php echo \esc_js( \__( "You're up to date!", 'silver-assist-revalidate-posts' ) ); ?>");
-						}
-					} else {
-						alert("<?php echo \esc_js( \__( 'Error checking updates. Please try again.', 'silver-assist-revalidate-posts' ) ); ?>");
-					}
-				},
-				error: () => {
-					alert("<?php echo \esc_js( \__( 'Error connecting to update server.', 'silver-assist-revalidate-posts' ) ); ?>");
-				}
-			});
-		})(jQuery);
-		</script>
-		<?php
+		// Enqueue external JavaScript file.
+		\wp_enqueue_script(
+			'silver-assist-check-updates',
+			\plugins_url( 'assets/js/admin-check-updates.js', dirname( __DIR__ ) . '/silver-assist-post-revalidate.php' ),
+			[ 'jquery' ],
+			SILVER_ASSIST_REVALIDATE_VERSION,
+			true
+		);
+
+		// Localize script with configuration data.
+		\wp_localize_script(
+			'silver-assist-check-updates',
+			'silverAssistCheckUpdatesData',
+			[
+				'ajaxurl'   => \admin_url( 'admin-ajax.php' ),
+				'nonce'     => \wp_create_nonce( 'silver_assist_revalidate_version_check' ),
+				'updateUrl' => \admin_url( 'update-core.php' ),
+				'strings'   => [
+					'checking'        => \__( 'Checking for updates...', 'silver-assist-revalidate-posts' ),
+					'updateAvailable' => \__( 'Update available! Redirecting to Updates page...', 'silver-assist-revalidate-posts' ),
+					'upToDate'        => \__( "You're up to date!", 'silver-assist-revalidate-posts' ),
+					'checkError'      => \__( 'Error checking updates. Please try again.', 'silver-assist-revalidate-posts' ),
+					'connectError'    => \__( 'Error connecting to update server.', 'silver-assist-revalidate-posts' ),
+				],
+			]
+		);
 	}
 
 	/**
@@ -572,8 +565,12 @@ class AdminSettings
 	/**
 	 * AJAX handler for checking plugin updates
 	 *
-	 * Validates nonce, checks for updates using wp-github-updater,
-	 * and returns update status information.
+	 * Implements complete WordPress update cache synchronization:
+	 * 1. Clears plugin version cache (GitHub API cache)
+	 * 2. Clears WordPress update cache (CRITICAL for update-core.php)
+	 * 3. Forces WordPress to check for updates NOW
+	 *
+	 * This ensures the Updates page shows the plugin as updatable.
 	 *
 	 * @since 1.2.1
 	 * @return void
@@ -585,8 +582,8 @@ class AdminSettings
 			\wp_send_json_error( [ 'message' => \__( 'Security validation failed', 'silver-assist-revalidate-posts' ) ] );
 		}
 
-		// Check user capability.
-		if ( ! \current_user_can( 'manage_options' ) ) {
+		// Check user capability - use update_plugins, not manage_options.
+		if ( ! \current_user_can( 'update_plugins' ) ) {
 			\wp_send_json_error( [ 'message' => \__( 'Insufficient permissions', 'silver-assist-revalidate-posts' ) ] );
 		}
 
@@ -598,10 +595,20 @@ class AdminSettings
 		}
 
 		try {
-			// Clear cached version to force fresh check.
+			// STEP 1: Clear plugin version cache (GitHub API cache).
 			$transient_key = 'silver-assist-revalidate-posts_version_check';
 			\delete_transient( $transient_key );
 
+			// STEP 2: Clear WordPress update cache (CRITICAL).
+			// This forces WordPress to rebuild its update information.
+			\delete_site_transient( 'update_plugins' );
+
+			// STEP 3: Force WordPress to check for updates NOW.
+			// This triggers the 'pre_set_site_transient_update_plugins' hook
+			// which wp-github-updater listens to.
+			\wp_update_plugins();
+
+			// Get update status.
 			$update_available = $updater->isUpdateAvailable();
 			$current_version  = $updater->getCurrentVersion();
 			$latest_version   = $updater->getLatestVersion();
@@ -617,6 +624,9 @@ class AdminSettings
 				]
 			);
 		} catch ( \Exception $e ) {
+			// Log error for debugging.
+			\error_log( 'Silver Assist Post Revalidate - Update Check Error: ' . $e->getMessage() );
+
 			\wp_send_json_error(
 				[
 					'message' => \__( 'Error checking for updates', 'silver-assist-revalidate-posts' ),

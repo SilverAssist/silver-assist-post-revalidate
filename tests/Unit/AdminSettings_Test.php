@@ -168,32 +168,31 @@ class AdminSettings_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that render_check_updates_script outputs inline AJAX JavaScript.
+	 * Test that render_check_updates_script enqueues external JavaScript file.
 	 *
-	 * Tests that the inline script properly integrates with Settings Hub's action button
-	 * and sends AJAX requests to the server with correct nonce validation.
+	 * Tests that the method properly enqueues the external JavaScript file
+	 * with localized data following WordPress best practices.
 	 *
 	 * @return void
 	 */
-	public function test_render_check_updates_script_outputs_javascript(): void {
+	public function test_render_check_updates_script_enqueues_script(): void {
 		$instance = AdminSettings::instance();
 
-		ob_start();
+		// Call the method (doesn't output anything).
 		$instance->render_check_updates_script();
-		$output = ob_get_clean();
 
-		// Verify inline script structure.
-		$this->assertStringContainsString( '<script type="text/javascript">', $output );
-		$this->assertStringContainsString( '$.ajax({', $output );
+		// Verify script is enqueued.
+		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
 		
-		// Verify AJAX action and nonce.
-		$this->assertStringContainsString( 'action: "silver_assist_revalidate_check_version"', $output );
-		$this->assertStringContainsString( 'nonce:', $output );
+		// Verify localized data is present.
+		global $wp_scripts;
+		$this->assertArrayHasKey( 'silver-assist-check-updates', $wp_scripts->registered );
 		
-		// Verify success handling with update_available check.
-		$this->assertStringContainsString( 'if (response.data.update_available)', $output );
-		$this->assertStringContainsString( 'window.location.href', $output );
-		$this->assertStringContainsString( 'update-core.php', $output );
+		$localized_data = $wp_scripts->registered['silver-assist-check-updates']->extra['data'] ?? '';
+		$this->assertStringContainsString( 'silverAssistCheckUpdatesData', $localized_data );
+		$this->assertStringContainsString( 'ajaxurl', $localized_data );
+		$this->assertStringContainsString( 'nonce', $localized_data );
+		$this->assertStringContainsString( 'updateUrl', $localized_data );
 	}
 
 	/**
