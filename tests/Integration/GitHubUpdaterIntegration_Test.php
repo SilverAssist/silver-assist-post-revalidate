@@ -5,11 +5,11 @@
  * Tests the plugin's integration with the GitHub Updater package.
  * Verifies updater initialization and update checking functionality.
  *
- * @package RevalidatePosts
+ * @package    RevalidatePosts
  * @subpackage Tests\Integration
- * @since 1.2.3
- * @author Silver Assist
- * @version 1.2.3
+ * @since      1.2.3
+ * @author     Silver Assist
+ * @version    1.2.3
  */
 
 namespace RevalidatePosts\Tests\Integration;
