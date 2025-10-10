@@ -7,6 +7,7 @@
  *
  * @package    RevalidatePosts
  * @subpackage Tests\Integration
+ * @author     Silver Assist
  * @since      1.2.2
  * @version    1.2.2
  */
