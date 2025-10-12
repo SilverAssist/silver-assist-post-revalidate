@@ -11,7 +11,7 @@
 	],
 	"minimum-stability": "stable",
 	"require": {
-		"php": ">=8.3",
+		"php": ">=8.2",
 		"composer/installers": "^2.0",
 		"silverassist/wp-github-updater": "^1.1",
 		"silverassist/wp-settings-hub": "^1.0"

@@ -196,7 +196,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Responsive CSS styling with mobile breakpoints
 - Build script updated to include `assets/` directory and validation
 - Test files unified: `Revalidate_Test.php` (710 lines, 36 tests)
-- WordPress Test Suite integration with PHP 8.4.1 and WordPress 6.8.3
+- WordPress Test Suite integration with PHP 8.2-8.4 and WordPress 6.8.3
 
 ## [1.1.0] - 2025-10-08
 
@@ -289,11 +289,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Manual release trigger via workflow_dispatch
   - Version validation and consistency checks
   - CHANGELOG.md entry verification
-  - Automated build process with PHP 8.3
+  - Automated build process with PHP 8.2
   - Checksum generation (MD5 and SHA256)
   - Build info documentation
   - Release notes extraction from CHANGELOG
-  - Multi-PHP version testing (8.3, 8.4)
+  - Multi-PHP version testing (8.2, 8.3, 8.4)
   - Quality checks: PHPCS, PHPStan Level 8, PHPUnit
   - Package structure validation
   - Artifact retention (90 days)
@@ -317,7 +317,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Yoast PHPUnit Polyfills for compatibility
 - Removed unused `SILVER_ASSIST_REVALIDATE_PLUGIN_URL` constant
 - Singleton pattern implementation for all classes
-- Modern PHP 8.3+ features
+- Modern PHP 8.2+ features
 
 ### Features
 - **Plugin.php**: Main plugin initialization class

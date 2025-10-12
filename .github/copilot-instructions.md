@@ -6,7 +6,7 @@
 **Namespace**: `RevalidatePosts`  
 **Text Domain**: `silver-assist-revalidate-posts`  
 **Minimum WordPress**: 6.5  
-**Minimum PHP**: 8.3  
+**Minimum PHP**: 8.2  
 **License**: GPL v2 or later
 
 ## Purpose
@@ -202,7 +202,7 @@ The plugin uses Composer for dependency management:
 - **String interpolation**: Use double quotes when embedding variables
 - **sprintf() with positional placeholders**: Use `%1$s`, `%2$d` format for translator-friendly strings
 
-#### Modern PHP 8.3+ Conventions
+#### Modern PHP 8.2+ Conventions
 - **Short array syntax**: `[]` not `array()`
 - **Namespaces**: Use `RevalidatePosts\` prefix
 - **Singleton pattern**: `Class_Name::instance()` method

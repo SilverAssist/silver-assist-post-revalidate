@@ -163,7 +163,7 @@ Contributors: silverassist
 Tags: revalidation, cache, next.js, headless, isr
 Requires at least: 6.5
 Tested up to: 6.7
-Requires PHP: 8.3
+Requires PHP: 8.2
 Stable tag: ${VERSION}
 License: Polyform-Noncommercial-1.0.0
 License URI: https://github.com/silverassist/silver-assist-post-revalidate/blob/main/LICENSE
@@ -182,7 +182,7 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 * **Secure**: Token-based authentication for endpoint requests
 * **Simple Configuration**: Easy-to-use admin settings page
 * **Debug Logging**: Optional debug logging when WP_DEBUG is enabled
-* **Modern PHP**: Built with PHP 8.3+ features and PSR-4 autoloading
+* **Modern PHP**: Built with PHP 8.2+ features and PSR-4 autoloading
 * **GitHub Updates**: Automatic plugin updates from GitHub releases
 
 = Use Cases =
@@ -264,13 +264,13 @@ Initial release of Silver Assist Post Revalidate plugin for headless WordPress c
 
 = Requirements =
 * WordPress 6.5+
-* PHP 8.3+
+* PHP 8.2+
 * Composer (for development only)
 
 = Architecture =
 * PSR-4 autoloading
 * Singleton pattern
-* Modern PHP 8.3+ features
+* Modern PHP 8.2+ features
 * WordPress Settings API
 * Comprehensive PHPDoc documentation
 

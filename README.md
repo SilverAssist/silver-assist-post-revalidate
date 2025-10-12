@@ -20,13 +20,13 @@ Silver Assist Post Revalidate is a lightweight WordPress plugin designed to keep
 - ✅ **Debug Logs**: Built-in debug log viewer with accordion UI (see requests/responses)
 - ✅ **Centralized Settings**: Integrates with Silver Assist Settings Hub
 - ✅ **Automatic Updates**: GitHub-based auto-updates for seamless upgrades
-- ✅ **Modern PHP**: Built with PHP 8.3+ features and PSR-4 autoloading
+- ✅ **Modern PHP**: Built with PHP 8.2+ features and PSR-4 autoloading
 - ✅ **Comprehensive Tests**: 36 tests, 100% passing, 0.3s execution time
 
 ## Requirements
 
 - **WordPress**: 6.5 or higher
-- **PHP**: 8.3 or higher
+- **PHP**: 8.2 or higher
 - **Composer**: For development only
 
 ## Installation
@@ -234,7 +234,7 @@ export default async function handler(req, res) {
 
 ### Prerequisites
 
-- PHP 8.3+
+- PHP 8.2+
 - Composer
 - WordPress development environment
 

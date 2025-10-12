@@ -5,7 +5,7 @@
  * Description: Automatically revalidates posts and categories when content changes, sending requests to a configured endpoint for cache invalidation.
  * Version: 1.3.0
  * Requires at least: 6.5
- * Requires PHP: 8.3
+ * Requires PHP: 8.2
  * Author: Silver Assist
  * Author URI: http://silverassist.com/
  * License: Polyform Noncommercial 1.0.0
