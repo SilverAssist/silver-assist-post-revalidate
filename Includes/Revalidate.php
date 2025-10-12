@@ -35,12 +35,20 @@ class Revalidate
 	private static ?Revalidate $instance = null;
 
 	/**
-	 * Posts already processed in this request to prevent duplicate revalidation
+	 * Array of processed post IDs to prevent duplicate revalidation
 	 *
-	 * @since 1.2.2
+	 * @since 1.3.0
 	 * @var array<int, bool>
 	 */
 	private array $processed_posts = [];
+
+	/**
+	 * Configuration instance
+	 *
+	 * @since 1.4.0
+	 * @var Configuration
+	 */
+	private Configuration $config;
 
 	/**
 	 * Flag to disable transient cooldown for testing
@@ -68,12 +76,13 @@ class Revalidate
 	/**
 	 * Revalidate constructor
 	 *
-	 * Sets up WordPress hooks for post and category events.
+	 * Sets up WordPress hooks for revalidation.
 	 *
 	 * @since 1.0.0
 	 */
 	private function __construct()
 	{
+		$this->config = Configuration::instance();
 		$this->init_hooks();
 	}
 
@@ -158,9 +167,8 @@ class Revalidate
 			return;
 		}
 
-		// Only handle standard posts for now (custom post types can be added in future versions).
-		$allowed_post_types = [ 'post' ];
-		if ( ! in_array( $post->post_type, $allowed_post_types, true ) ) {
+		// Only handle enabled post types.
+		if ( ! $this->config->is_post_type_enabled( $post->post_type ) ) {
 			return;
 		}
 
@@ -267,7 +275,7 @@ class Revalidate
 		}
 
 		$post = \get_post( $post_id );
-		if ( ! $post || 'post' !== $post->post_type ) {
+		if ( ! $post || ! $this->config->is_post_type_enabled( $post->post_type ) ) {
 			return;
 		}
 
@@ -332,8 +340,8 @@ class Revalidate
 			return;
 		}
 
-		// Only handle standard posts.
-		if ( 'post' !== $post->post_type ) {
+		// Only handle enabled post types.
+		if ( ! $this->config->is_post_type_enabled( $post->post_type ) ) {
 			return;
 		}
 

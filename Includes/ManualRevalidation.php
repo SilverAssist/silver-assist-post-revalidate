@@ -34,6 +34,14 @@ class ManualRevalidation {
 	private static ?ManualRevalidation $instance = null;
 
 	/**
+	 * Configuration instance
+	 *
+	 * @since 1.4.0
+	 * @var Configuration
+	 */
+	private Configuration $config;
+
+	/**
 	 * Gets the singleton instance
 	 *
 	 * @since 1.4.0
@@ -55,6 +63,7 @@ class ManualRevalidation {
 	 * @since 1.4.0
 	 */
 	private function __construct() {
+		$this->config = Configuration::instance();
 		$this->init_hooks();
 	}
 
@@ -100,8 +109,8 @@ class ManualRevalidation {
 			return $actions;
 		}
 
-		// Only show for post type 'post' for now.
-		if ( 'post' !== $post->post_type ) {
+		// Only show for enabled post types.
+		if ( ! $this->config->is_post_type_enabled( $post->post_type ) ) {
 			return $actions;
 		}
 
@@ -115,11 +124,13 @@ class ManualRevalidation {
 		$actions['revalidate'] = sprintf(
 			'<a href="%s" aria-label="%s">%s</a>',
 			\esc_url( $url ),
-			\esc_attr( sprintf(
+			\esc_attr(
+				sprintf(
 				/* translators: %s: post title */
-				\__( 'Revalidate "%s"', 'silver-assist-revalidate-posts' ),
-				$post->post_title
-			) ),
+					\__( 'Revalidate "%s"', 'silver-assist-revalidate-posts' ),
+					$post->post_title
+				)
+			),
 			\esc_html__( 'Revalidate', 'silver-assist-revalidate-posts' )
 		);
 
@@ -135,13 +146,8 @@ class ManualRevalidation {
 	public function add_revalidate_meta_box(): void {
 		$post = \get_post();
 
-		// Only show for published posts.
-		if ( ! $post || 'publish' !== $post->post_status ) {
-			return;
-		}
-
-		// Only for post type 'post' for now.
-		if ( 'post' !== $post->post_type ) {
+		// Only show for enabled post types.
+		if ( ! $post || ! $this->config->is_post_type_enabled( $post->post_type ) ) {
 			return;
 		}
 
@@ -149,7 +155,7 @@ class ManualRevalidation {
 			'silver_assist_revalidate_meta_box',
 			\__( 'Revalidate', 'silver-assist-revalidate-posts' ),
 			[ $this, 'render_revalidate_meta_box' ],
-			'post',
+			$post->post_type,
 			'side',
 			'default'
 		);
@@ -297,8 +303,8 @@ class ManualRevalidation {
 		// Trigger revalidation.
 		$result = $this->trigger_revalidation( $post );
 
-		// Redirect back with message.
-		$redirect_url = \admin_url( 'edit.php?post_type=post' );
+		// Redirect back to post list for this post type.
+		$redirect_url = \admin_url( 'edit.php?post_type=' . $post->post_type );
 
 		if ( $result ) {
 			$redirect_url = \add_query_arg( 'revalidated', '1', $redirect_url );
