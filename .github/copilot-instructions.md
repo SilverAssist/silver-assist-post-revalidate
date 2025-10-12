@@ -547,12 +547,159 @@ Location: `scripts/build-release.sh`
 4. Update documentation as needed
 5. Run all quality checks
 
+## Testing Guidelines
+
+### Test-Driven Development (TDD)
+
+**CRITICAL RULE**: ALL new functionality MUST follow strict TDD methodology (RED → GREEN → REFACTOR).
+
+### WordPress Testing Standards
+
+#### Test Structure
+- **Base Class**: All tests MUST extend `WP_UnitTestCase` for WordPress integration
+- **Test Location**: 
+  - Unit tests: `tests/Unit/`
+  - Integration tests: `tests/Integration/`
+- **Naming**: Test files must match class names with `_Test.php` suffix
+
+#### Test Organization
+```php
+/**
+ * @group security       // For security-related tests
+ * @group integration    // For integration tests
+ * @group http          // For HTTP/API tests
+ */
+class MyFeature_Test extends WP_UnitTestCase {
+    public function setUp(): void {
+        parent::setUp();
+        // Setup test fixtures
+    }
+    
+    public function tearDown(): void {
+        // Always clean up: delete options, transients, posts
+        parent::tearDown();
+    }
+}
+```
+
+#### WordPress Test Utilities
+
+**Use WordPress Factories**:
+```php
+// Create test posts
+$post_id = $this->factory->post->create([
+    'post_title' => 'Test Post',
+    'post_status' => 'publish',
+]);
+
+// Create test users
+$user_id = $this->factory->user->create(['role' => 'administrator']);
+
+// Create test terms
+$term_id = $this->factory->term->create(['taxonomy' => 'category']);
+```
+
+**Mock HTTP Requests**:
+```php
+// Use pre_http_request filter for fast tests
+add_filter('pre_http_request', function($preempt, $args, $url) {
+    return [
+        'response' => ['code' => 200],
+        'body' => json_encode(['success' => true]),
+    ];
+}, 10, 3);
+```
+
+**Test WordPress Hooks**:
+```php
+// Verify hook is registered
+$this->assertTrue(has_action('save_post'));
+$this->assertEquals(10, has_action('save_post', [$instance, 'method']));
+```
+
+#### Test Requirements
+
+1. **Always Clean Up**: Delete created data in `tearDown()`
+   ```php
+   delete_option('my_option');
+   delete_transient('my_transient');
+   wp_delete_post($post_id, true);
+   ```
+
+2. **Document Version-Specific Behavior**:
+   ```php
+   // WordPress 6.0+ changed the autosave behavior
+   if (version_compare(get_bloginfo('version'), '6.0', '>=')) {
+       // New behavior
+   }
+   ```
+
+3. **Use Assertions Appropriately**:
+   - `assertInstanceOf()` for object types
+   - `assertSame()` for strict equality
+   - `assertTrue()/assertFalse()` for booleans
+   - `assertCount()` for array sizes
+
+4. **Test Edge Cases**:
+   - Empty values
+   - Null values
+   - Invalid input
+   - Permission checks
+   - Security (XSS, SQL injection attempts)
+
+#### Running Tests
+
+```bash
+# Run all tests
+vendor/bin/phpunit
+
+# Run specific test file
+vendor/bin/phpunit tests/Unit/Configuration_Test.php
+
+# Run with testdox (readable output)
+vendor/bin/phpunit --testdox
+
+# Run specific group
+vendor/bin/phpunit --group security
+
+# Stop on first failure
+vendor/bin/phpunit --stop-on-failure
+```
+
+#### Test Coverage Goals
+
+- **Unit Tests**: 100% coverage of public methods
+- **Integration Tests**: All WordPress hooks and filters
+- **Security Tests**: All capability checks and nonce validation
+- **Current Status**: See `tests/TESTING_TODO.md` (local file only)
+
+### AJAX Testing
+
+For AJAX endpoints, extend `WP_Ajax_UnitTestCase`:
+```php
+class MyAjax_Test extends WP_Ajax_UnitTestCase {
+    public function test_ajax_endpoint() {
+        $_POST['action'] = 'my_action';
+        $_POST['_wpnonce'] = wp_create_nonce('my_nonce');
+        
+        try {
+            $this->_handleAjax('my_action');
+        } catch (WPAjaxDieContinueException $e) {
+            // Expected for successful AJAX
+        }
+        
+        $response = json_decode($this->_last_response);
+        $this->assertTrue($response->success);
+    }
+}
+```
+
 ## License
 
 GPL v2 or later
 
 ---
 
-**Last Updated**: October 8, 2025  
-**Version**: 1.1.0
+**Last Updated**: October 12, 2025  
+**Version**: 1.4.0
 ```
