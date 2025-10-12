@@ -189,7 +189,7 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'revalidate-check-updates', $wp_scripts->registered );
 		
 		$localized_data = $wp_scripts->registered['revalidate-check-updates']->extra['data'] ?? '';
-		$this->assertStringContainsString( 'silverAssistCheckUpdatesData', $localized_data );
+		$this->assertStringContainsString( 'silverAssistRevalidateCheckUpdatesData', $localized_data );
 		$this->assertStringContainsString( 'ajaxurl', $localized_data );
 		$this->assertStringContainsString( 'nonce', $localized_data );
 		$this->assertStringContainsString( 'updateUrl', $localized_data );
