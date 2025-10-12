@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Configuration Class**: New centralized post type management system
+  - **Singleton Pattern**: `Configuration::instance()` for centralized access
+  - **Post Type Methods**: `get_enabled_post_types()`, `is_post_type_enabled($type)`
+  - **Label Helpers**: `get_post_type_label($type)`, `get_post_type_label_plural($type)`
+  - **Future-Ready**: Prepared with `@todo` comments for settings UI integration
+  - **Type-Safe**: Uses WordPress `WP_Post_Type` objects
+  - **Test Coverage**: 10 unit tests covering all Configuration methods
 - **Manual Revalidation UI**: New admin interface for manual cache revalidation
   - **Row Actions**: "Revalidate" link in post list table (alongside Edit, Quick Edit, Trash, View)
   - **Meta Box**: "Revalidate" button in post editor sidebar (Gutenberg + Classic Editor)
@@ -23,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Post Type Management**: Refactored to use Configuration class (no more hardcoded 'post')
+  - All post type checks now use `Configuration::is_post_type_enabled()`
+  - Removed hardcoded `'post'` strings from `Revalidate.php`
+  - Removed hardcoded `'post'` strings from `ManualRevalidation.php`
+  - Dynamic post type in meta box registration
+  - Dynamic post type in redirect URLs
+  - Prepared for future custom post types support
 - **JavaScript Namespace**: Renamed global functions to avoid collision with other Silver Assist plugins
   - Function: `silverAssistCheckUpdates()` → `silverAssistRevalidateCheckUpdates()`
   - Data object: `silverAssistCheckUpdatesData` → `silverAssistRevalidateCheckUpdatesData`
