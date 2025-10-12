@@ -3,7 +3,7 @@
  * Plugin Name: Silver Assist Post Revalidate
  * Plugin URI: https://github.com/SilverAssist/silver-assist-post-revalidate
  * Description: Automatically revalidates posts and categories when content changes, sending requests to a configured endpoint for cache invalidation.
- * Version: 1.3.0
+ * Version: 1.3.1
  * Requires at least: 6.5
  * Requires PHP: 8.2
  * Author: Silver Assist
@@ -15,14 +15,14 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.1
  * @license Polyform Noncommercial 1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 // Define plugin constants.
-define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.3.0' );
+define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.3.1' );
 define( 'SILVER_ASSIST_REVALIDATE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 
 // Load composer autoloader.

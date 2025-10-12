@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
+## [1.3.1] - 2025-10-12
+
+### Changed
+- **PHP Requirement**: Lowered minimum PHP version from 8.3 to 8.2
+  - Expands compatibility to more hosting providers
+  - All core functionality tested and working on PHP 8.2+
+  - CI/CD pipeline now tests PHP 8.2, 8.3, and 8.4
+  - Updated all documentation and configuration files
+  - Validated with PHPCS, PHPStan Level 8, and 126 passing tests
+
 ## [1.3.0] - 2025-10-09
 
 ### Added
