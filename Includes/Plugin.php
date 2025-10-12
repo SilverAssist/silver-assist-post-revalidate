@@ -54,13 +54,6 @@ class Plugin
 	private ?Updater $updater = null;
 
 	/**
-	 * ManualRevalidation instance
-	 *
-	 * @var ManualRevalidation|null
-	 */
-	private ?ManualRevalidation $manual_revalidation = null;
-
-	/**
 	 * Get singleton instance
 	 *
 	 * @since 1.0.0
@@ -129,7 +122,7 @@ class Plugin
 		// Initialize admin settings only in admin area.
 		if ( \is_admin() ) {
 			$this->admin_settings = AdminSettings::instance();
-			$this->manual_revalidation = ManualRevalidation::instance();
+			ManualRevalidation::instance(); // Initialize hooks only.
 		}
 
 		// Initialize GitHub updater for automatic updates.
