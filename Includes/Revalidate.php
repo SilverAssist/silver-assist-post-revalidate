@@ -444,6 +444,21 @@ class Revalidate
 	}
 
 	/**
+	 * Revalidate a single path
+	 *
+	 * Wrapper method to revalidate a single path with optional trigger information.
+	 *
+	 * @since 1.4.0
+	 * @param string $path Path to revalidate.
+	 * @param string $trigger Trigger source (e.g., 'manual', 'auto'). Default 'auto'.
+	 * @return void
+	 */
+	public function revalidate_path( string $path, string $trigger = 'auto' ): void
+	{
+		$this->revalidate_paths( [ $path ], $trigger );
+	}
+
+	/**
 	 * Revalidates specified paths by sending requests to configured endpoint
 	 *
 	 * Sends GET requests to the revalidation endpoint with token and path parameters.
@@ -451,9 +466,10 @@ class Revalidate
 	 *
 	 * @since 1.0.0
 	 * @param array<int, string> $paths Array of paths to revalidate.
+	 * @param string             $trigger Trigger source (e.g., 'manual', 'auto'). Default 'auto'.
 	 * @return void
 	 */
-	public function revalidate_paths( array $paths ): void
+	public function revalidate_paths( array $paths, string $trigger = 'auto' ): void
 	{
 		// Remove duplicate paths.
 		$paths = array_unique( $paths );
@@ -523,6 +539,7 @@ class Revalidate
 			$log_entry = [
 				'timestamp'   => \current_time( 'mysql' ),
 				'path'        => $path,
+				'trigger'     => $trigger,
 				'request'     => $request_data,
 				'response'    => [],
 				'status'      => 'error',

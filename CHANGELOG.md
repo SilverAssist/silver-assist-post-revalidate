@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Manual Revalidation UI**: New admin interface for manual cache revalidation
+  - **Row Actions**: "Revalidate" link in post list table (alongside Edit, Quick Edit, Trash, View)
+  - **Meta Box**: "Revalidate" button in post editor sidebar (Gutenberg + Classic Editor)
+  - **AJAX Support**: Real-time revalidation with loading states and feedback
+  - **Admin Notices**: WordPress-style success/error messages
+  - **Non-AJAX Fallback**: Row action works without JavaScript (accessibility)
+  - **Security**: Nonce validation + `edit_posts` capability checks on all endpoints
+  - **Trigger Tracking**: Log entries now include `trigger` field ('manual' vs 'auto')
+  - **Comprehensive Tests**: 10 integration tests for complete feature coverage
+- **New Class**: `ManualRevalidation` handles all manual revalidation functionality
+- **New JavaScript**: `manual-revalidate.js` provides AJAX handler for meta box button
+
 ### Changed
 
 - **JavaScript Namespace**: Renamed global functions to avoid collision with other Silver Assist plugins
@@ -14,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Data object: `silverAssistCheckUpdatesData` → `silverAssistRevalidateCheckUpdatesData`
   - Each Silver Assist plugin now uses plugin-specific function names
   - Prevents function overwriting when multiple plugins are active
+- **Revalidate Class**: Extended with trigger parameter support
+  - Added `revalidate_path($path, $trigger = 'auto')` method
+  - Updated `revalidate_paths()` to accept `$trigger` parameter
+  - Log entries now include 'trigger' field for analytics
+  - Backward compatible: default trigger is 'auto'
 
 ### Improved
 
@@ -33,8 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- Custom post type support
-- Manual revalidation button in admin
+- Custom post type support for manual revalidation
 - Bulk revalidation tool
 - Revalidation queue system
 
