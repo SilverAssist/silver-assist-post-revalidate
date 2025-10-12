@@ -25,8 +25,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.4.0
  */
-class ManualRevalidation
-{
+class ManualRevalidation {
 	/**
 	 * Singleton instance
 	 *
@@ -40,8 +39,7 @@ class ManualRevalidation
 	 * @since 1.4.0
 	 * @return ManualRevalidation The single instance of the ManualRevalidation class
 	 */
-	public static function instance(): ManualRevalidation
-	{
+	public static function instance(): ManualRevalidation {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new self();
 		}
@@ -56,8 +54,7 @@ class ManualRevalidation
 	 *
 	 * @since 1.4.0
 	 */
-	private function __construct()
-	{
+	private function __construct() {
 		$this->init_hooks();
 	}
 
@@ -67,8 +64,7 @@ class ManualRevalidation
 	 * @since 1.4.0
 	 * @return void
 	 */
-	private function init_hooks(): void
-	{
+	private function init_hooks(): void {
 		// Add row action to post list.
 		\add_filter( 'post_row_actions', [ $this, 'add_revalidate_row_action' ], 10, 2 );
 
@@ -93,8 +89,7 @@ class ManualRevalidation
 	 * @param WP_Post               $post    Current post object.
 	 * @return array<string, string> Modified row actions
 	 */
-	public function add_revalidate_row_action( array $actions, WP_Post $post ): array
-	{
+	public function add_revalidate_row_action( array $actions, WP_Post $post ): array {
 		// Only show for published posts.
 		if ( 'publish' !== $post->post_status ) {
 			return $actions;
@@ -137,8 +132,7 @@ class ManualRevalidation
 	 * @since 1.4.0
 	 * @return void
 	 */
-	public function add_revalidate_meta_box(): void
-	{
+	public function add_revalidate_meta_box(): void {
 		$post = \get_post();
 
 		// Only show for published posts.
@@ -168,8 +162,7 @@ class ManualRevalidation
 	 * @param WP_Post $post Current post object.
 	 * @return void
 	 */
-	public function render_revalidate_meta_box( WP_Post $post ): void
-	{
+	public function render_revalidate_meta_box( WP_Post $post ): void {
 		// Add nonce for security.
 		\wp_nonce_field( 'revalidate_post_' . $post->ID, 'revalidate_post_nonce' );
 		?>
@@ -190,8 +183,7 @@ class ManualRevalidation
 	 * @param string $hook Current admin page hook.
 	 * @return void
 	 */
-	public function enqueue_admin_scripts( string $hook ): void
-	{
+	public function enqueue_admin_scripts( string $hook ): void {
 		// Only load on post edit screen.
 		if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
 			return;
@@ -225,8 +217,7 @@ class ManualRevalidation
 	 * @since 1.4.0
 	 * @return void
 	 */
-	public function ajax_manual_revalidate(): void
-	{
+	public function ajax_manual_revalidate(): void {
 		// Verify nonce.
 		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 		$nonce   = isset( $_POST['_wpnonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['_wpnonce'] ) ) : '';
@@ -282,8 +273,7 @@ class ManualRevalidation
 	 * @since 1.4.0
 	 * @return void
 	 */
-	public function handle_revalidate_action(): void
-	{
+	public function handle_revalidate_action(): void {
 		// Get post ID.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified below.
 		$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
@@ -327,8 +317,7 @@ class ManualRevalidation
 	 * @param WP_Post $post Post object.
 	 * @return bool True on success, false on failure
 	 */
-	private function trigger_revalidation( WP_Post $post ): bool
-	{
+	private function trigger_revalidation( WP_Post $post ): bool {
 		// Get post permalink.
 		$permalink = \get_permalink( $post );
 		if ( ! $permalink ) {
