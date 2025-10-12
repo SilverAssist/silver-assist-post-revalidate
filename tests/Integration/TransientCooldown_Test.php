@@ -264,7 +264,7 @@ class TransientCooldown_Test extends WP_UnitTestCase {
 	 */
 	public function test_post_save_creates_cooldown_for_permalink(): void {
 		// Create and publish a post.
-		$post_id = $this->factory->post->create(
+		$post_id = static::factory()->post->create(
 			[
 				'post_status' => 'publish',
 				'post_type'   => 'post',
@@ -292,7 +292,7 @@ class TransientCooldown_Test extends WP_UnitTestCase {
 	 */
 	public function test_cooldown_prevents_duplicate_post_updates(): void {
 		// Create a post.
-		$post_id = $this->factory->post->create(
+		$post_id = static::factory()->post->create(
 			[
 				'post_status' => 'publish',
 				'post_type'   => 'post',

@@ -164,7 +164,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		delete_option( 'silver_assist_revalidate_logs' );
 
 		// Create a new post.
-		$new_post_id = $this->factory->post->create(
+		$new_post_id = static::factory()->post->create(
 [
 'post_title'  => 'New Test Post',
 				'post_status' => 'publish',
@@ -213,7 +213,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a post to delete.
-		$delete_post_id = $this->factory->post->create(
+		$delete_post_id = static::factory()->post->create(
 [
 'post_title'  => 'Post to Delete',
 				'post_status' => 'publish',
@@ -236,7 +236,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_draft_post_does_not_trigger_revalidation(): void {
-		$draft_post_id = $this->factory->post->create(
+		$draft_post_id = static::factory()->post->create(
 [
 'post_title'  => 'Draft Post',
 				'post_status' => 'draft',
@@ -269,7 +269,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a published post.
-		$status_post_id = $this->factory->post->create(
+		$status_post_id = static::factory()->post->create(
 [
 'post_title'  => 'Post Status Test',
 				'post_status' => 'publish',
@@ -302,7 +302,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a published post.
-		$status_post_id = $this->factory->post->create(
+		$status_post_id = static::factory()->post->create(
 [
 'post_title'  => 'Post Status Private Test',
 				'post_status' => 'publish',
@@ -335,7 +335,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a draft post.
-		$status_post_id = $this->factory->post->create(
+		$status_post_id = static::factory()->post->create(
 [
 'post_title'  => 'Draft to Publish Test',
 				'post_status' => 'draft',
@@ -437,7 +437,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		delete_option( 'silver_assist_revalidate_logs' );
 
 		// Create a new category.
-		$new_category_id = $this->factory->category->create(
+		$new_category_id = static::factory()->category->create(
 [
 'name' => 'New Category Test',
 				'slug' => 'new-category-test',
@@ -480,7 +480,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a category to delete.
-		$delete_category_id = $this->factory->category->create(
+		$delete_category_id = static::factory()->category->create(
 [
 'name' => 'Category to Delete',
 				'slug' => 'category-to-delete',
@@ -512,7 +512,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		delete_option( 'silver_assist_revalidate_logs' );
 
 		// Create a new tag.
-		$new_tag_id = $this->factory->tag->create(
+		$new_tag_id = static::factory()->tag->create(
 [
 'name' => 'New Tag Test',
 				'slug' => 'new-tag-test',
@@ -555,7 +555,7 @@ class Revalidate_Test extends WP_UnitTestCase {
 		update_option( 'revalidate_token', 'test-token' );
 
 		// Create a tag to delete.
-		$delete_tag_id = $this->factory->tag->create(
+		$delete_tag_id = static::factory()->tag->create(
 [
 'name' => 'Tag to Delete',
 				'slug' => 'tag-to-delete',

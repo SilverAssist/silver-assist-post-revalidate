@@ -84,7 +84,7 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		remove_action( 'save_post', [ Revalidate::instance(), 'on_post_saved' ], 10 );
 
 		// Create a published post for testing (won't trigger revalidation now).
-		$this->test_post_id = $this->factory->post->create(
+		$this->test_post_id = static::factory()->post->create(
 			[
 				'post_status' => 'publish',
 				'post_title'  => 'Test Post for Manual Revalidation',
@@ -211,7 +211,7 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_user_id );
 
 		// Create a draft post.
-		$draft_post_id = $this->factory->post->create(
+		$draft_post_id = static::factory()->post->create(
 			[
 				'post_status' => 'draft',
 			]
@@ -310,7 +310,7 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		wp_set_current_user( self::$admin_user_id );
 
 		// Create a draft post.
-		$draft_post_id = $this->factory->post->create(
+		$draft_post_id = static::factory()->post->create(
 			[
 				'post_status' => 'draft',
 			]
@@ -394,7 +394,7 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_ajax_manual_revalidation_requires_capability(): void {
 		// Create subscriber user (no edit_posts capability).
-		$subscriber_id = $this->factory->user->create(
+		$subscriber_id = static::factory()->user->create(
 			[
 				'role' => 'subscriber',
 			]

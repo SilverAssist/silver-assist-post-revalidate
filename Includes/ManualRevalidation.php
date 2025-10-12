@@ -174,7 +174,7 @@ class ManualRevalidation {
 		?>
 		<div class="silver-assist-revalidate-meta-box">
 			<p><?php \esc_html_e( 'Manually trigger cache revalidation for this post.', 'silver-assist-revalidate-posts' ); ?></p>
-			<button type="button" class="button button-primary" id="silver-assist-revalidate-button" data-post-id="<?php echo \esc_attr( $post->ID ); ?>">
+			<button type="button" class="button button-primary" id="silver-assist-revalidate-button" data-post-id="<?php echo \esc_attr( (string) $post->ID ); ?>">
 				<?php \esc_html_e( 'Revalidate this post', 'silver-assist-revalidate-posts' ); ?>
 			</button>
 			<div id="silver-assist-revalidate-message" style="margin-top: 10px;"></div>

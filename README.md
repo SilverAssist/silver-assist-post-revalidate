@@ -389,7 +389,7 @@ class Plugin_Test extends WP_UnitTestCase {
     
     public function test_something(): void {
         // Create real WordPress posts, users, etc.
-        $post_id = $this->factory->post->create();
+        $post_id = static::factory()->post->create();
         
         // Test with real WordPress functions
         $this->assertTrue( get_post( $post_id ) !== null );

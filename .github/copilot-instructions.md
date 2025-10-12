@@ -587,16 +587,16 @@ class MyFeature_Test extends WP_UnitTestCase {
 **Use WordPress Factories**:
 ```php
 // Create test posts
-$post_id = $this->factory->post->create([
+$post_id = static::factory()->post->create([
     'post_title' => 'Test Post',
     'post_status' => 'publish',
 ]);
 
 // Create test users
-$user_id = $this->factory->user->create(['role' => 'administrator']);
+$user_id = static::factory()->user->create(['role' => 'administrator']);
 
 // Create test terms
-$term_id = $this->factory->term->create(['taxonomy' => 'category']);
+$term_id = static::factory()->term->create(['taxonomy' => 'category']);
 ```
 
 **Mock HTTP Requests**:
