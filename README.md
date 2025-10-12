@@ -454,18 +454,6 @@ Future enhancements planned:
 - [ ] More granular path control
 - [ ] Multiple endpoint support
 
-## Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow WordPress coding standards
-4. Run quality checks (`composer run test`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
 ## License
 
 This plugin is licensed under the **Polyform Noncommercial License 1.0.0**.
@@ -502,12 +490,6 @@ If you need to use this plugin for commercial purposes, please contact Silver As
 ## Credits
 
 Developed by [Silver Assist](http://silverassist.com/)
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/SilverAssist/silver-assist-post-revalidate/issues)
-- **Documentation**: [GitHub Wiki](https://github.com/SilverAssist/silver-assist-post-revalidate/wiki)
-- **Website**: http://silverassist.com/
 
 ---
 
