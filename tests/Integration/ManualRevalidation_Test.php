@@ -365,8 +365,6 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test AJAX handler requires valid nonce.
 	 *
-	 * RED PHASE: This test will fail because the functionality doesn't exist yet.
-	 *
 	 * @return void
 	 */
 	public function test_ajax_manual_revalidation_requires_nonce(): void {
@@ -376,25 +374,21 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		$_POST['post_id']  = $this->test_post_id;
 		$_POST['_wpnonce'] = 'invalid-nonce';
 
-		// Capture the AJAX response using output buffering.
-		ob_start();
+		// Use _handleAjax() helper from WordPress test case.
 		try {
-			do_action( 'wp_ajax_silver_assist_manual_revalidate' );
+			$this->_handleAjax( 'silver_assist_manual_revalidate' );
 		} catch ( \WPAjaxDieContinueException $e ) {
-			// Expected exception from wp_send_json_error.
+			// Expected - thrown by wp_send_json_error().
 		}
-		$output = ob_get_clean();
 
-		$response = json_decode( $output, true );
+		$response = json_decode( $this->_last_response, true );
 
 		$this->assertNotNull( $response, 'Response should be valid JSON' );
-		$this->assertFalse( $response['success'], 'AJAX response should fail with invalid nonce' );
+		$this->assertFalse( $response['success'] ?? true, 'AJAX response should fail with invalid nonce' );
 	}
 
 	/**
 	 * Test AJAX handler requires edit_posts capability.
-	 *
-	 * RED PHASE: This test will fail because the functionality doesn't exist yet.
 	 *
 	 * @return void
 	 */
@@ -411,25 +405,21 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		$_POST['post_id']  = $this->test_post_id;
 		$_POST['_wpnonce'] = wp_create_nonce( 'revalidate_post_' . $this->test_post_id );
 
-		// Capture the AJAX response using output buffering.
-		ob_start();
+		// Use _handleAjax() helper from WordPress test case.
 		try {
-			do_action( 'wp_ajax_silver_assist_manual_revalidate' );
+			$this->_handleAjax( 'silver_assist_manual_revalidate' );
 		} catch ( \WPAjaxDieContinueException $e ) {
-			// Expected exception from wp_send_json_error.
+			// Expected - thrown by wp_send_json_error().
 		}
-		$output = ob_get_clean();
 
-		$response = json_decode( $output, true );
+		$response = json_decode( $this->_last_response, true );
 
 		$this->assertNotNull( $response, 'Response should be valid JSON' );
-		$this->assertFalse( $response['success'], 'AJAX response should fail without edit_posts capability' );
+		$this->assertFalse( $response['success'] ?? true, 'AJAX response should fail without edit_posts capability' );
 	}
 
 	/**
 	 * Test that manual revalidation creates log entry.
-	 *
-	 * RED PHASE: This test will fail because the functionality doesn't exist yet.
 	 *
 	 * @return void
 	 */
@@ -443,14 +433,12 @@ class ManualRevalidation_Test extends WP_Ajax_UnitTestCase {
 		$_POST['post_id']  = $this->test_post_id;
 		$_POST['_wpnonce'] = wp_create_nonce( 'revalidate_post_' . $this->test_post_id );
 
-		// Trigger AJAX action using output buffering.
-		ob_start();
+		// Use _handleAjax() helper from WordPress test case.
 		try {
-			do_action( 'wp_ajax_silver_assist_manual_revalidate' );
+			$this->_handleAjax( 'silver_assist_manual_revalidate' );
 		} catch ( \WPAjaxDieContinueException $e ) {
-			// Expected exception from wp_send_json_success.
+			// Expected - thrown by wp_send_json_success().
 		}
-		ob_end_clean();
 
 		// Check logs.
 		$logs = get_option( 'silver_assist_revalidate_logs', [] );

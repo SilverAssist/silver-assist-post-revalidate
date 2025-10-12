@@ -435,7 +435,7 @@ class Revalidate
 	 * @param string $url The full URL to convert.
 	 * @return string The relative path from the URL.
 	 */
-	private function get_relative_path_from_url( string $url ): string
+	public function get_relative_path_from_url( string $url ): string
 	{
 		$home_url = \home_url();
 		$path     = str_replace( $home_url, '', $url );

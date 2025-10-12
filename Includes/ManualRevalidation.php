@@ -337,7 +337,7 @@ class ManualRevalidation
 
 		// Convert to relative path.
 		$revalidate = Revalidate::instance();
-		$path       = $revalidate->url_to_relative_path( $permalink );
+		$path       = $revalidate->get_relative_path_from_url( $permalink );
 
 		// Collect all paths to revalidate.
 		$paths = [ $path ];
@@ -348,7 +348,7 @@ class ManualRevalidation
 			foreach ( $categories as $category ) {
 				$category_link = \get_category_link( $category->term_id );
 				if ( $category_link ) {
-					$paths[] = $revalidate->url_to_relative_path( $category_link );
+					$paths[] = $revalidate->get_relative_path_from_url( $category_link );
 				}
 			}
 		}
@@ -359,7 +359,7 @@ class ManualRevalidation
 			foreach ( $tags as $tag ) {
 				$tag_link = \get_tag_link( $tag->term_id );
 				if ( $tag_link ) {
-					$paths[] = $revalidate->url_to_relative_path( $tag_link );
+					$paths[] = $revalidate->get_relative_path_from_url( $tag_link );
 				}
 			}
 		}
