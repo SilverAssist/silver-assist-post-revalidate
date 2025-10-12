@@ -7,7 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **JavaScript Namespace**: Renamed global functions to avoid collision with other Silver Assist plugins
+  - Function: `silverAssistCheckUpdates()` → `silverAssistRevalidateCheckUpdates()`
+  - Data object: `silverAssistCheckUpdatesData` → `silverAssistRevalidateCheckUpdatesData`
+  - Each Silver Assist plugin now uses plugin-specific function names
+  - Prevents function overwriting when multiple plugins are active
+
+### Improved
+
+- **Update Check UX**: Replaced JavaScript `alert()` calls with WordPress-style admin notices
+  - Added `showAdminNotice()` helper function for consistent UI
+  - Success/info notices auto-dismiss after 5 seconds
+  - Error/warning notices require manual dismissal
+  - Smooth fade animations for better user experience
+  - Added "Checking for updates..." notice during AJAX request
+  - Added 2-second delay before redirect when update available
+
+### Fixed
+
+- **Settings Hub Integration**: Added missing `echo` statement in update check callback
+  - Settings Hub requires callbacks to echo JavaScript, not return it
+  - Ensures "Check Updates" button functions correctly in Settings Hub dashboard
+
 ### Planned
+
 - Custom post type support
 - Manual revalidation button in admin
 - Bulk revalidation tool

@@ -182,13 +182,13 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		$instance->render_check_updates_script();
 
 		// Verify script is enqueued.
-		$this->assertTrue( wp_script_is( 'silver-assist-check-updates', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'revalidate-check-updates', 'enqueued' ) );
 		
 		// Verify localized data is present.
 		global $wp_scripts;
-		$this->assertArrayHasKey( 'silver-assist-check-updates', $wp_scripts->registered );
+		$this->assertArrayHasKey( 'revalidate-check-updates', $wp_scripts->registered );
 		
-		$localized_data = $wp_scripts->registered['silver-assist-check-updates']->extra['data'] ?? '';
+		$localized_data = $wp_scripts->registered['revalidate-check-updates']->extra['data'] ?? '';
 		$this->assertStringContainsString( 'silverAssistCheckUpdatesData', $localized_data );
 		$this->assertStringContainsString( 'ajaxurl', $localized_data );
 		$this->assertStringContainsString( 'nonce', $localized_data );

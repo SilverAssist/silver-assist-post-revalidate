@@ -244,7 +244,7 @@ class AdminSettings
 
 		// Enqueue external JavaScript file.
 		\wp_enqueue_script(
-			'silver-assist-check-updates',
+			'revalidate-check-updates',
 			\plugins_url( 'assets/js/admin-check-updates.js', dirname( __DIR__ ) . '/silver-assist-post-revalidate.php' ),
 			[ 'jquery' ],
 			SILVER_ASSIST_REVALIDATE_VERSION,
@@ -253,8 +253,8 @@ class AdminSettings
 
 		// Localize script with configuration data.
 		\wp_localize_script(
-			'silver-assist-check-updates',
-			'silverAssistCheckUpdatesData',
+			'revalidate-check-updates',
+			'silverAssistRevalidateCheckUpdatesData',
 			[
 				'ajaxurl'   => \admin_url( 'admin-ajax.php' ),
 				'nonce'     => \wp_create_nonce( 'silver_assist_revalidate_version_check' ),
@@ -268,6 +268,11 @@ class AdminSettings
 				],
 			]
 		);
+
+		// Echo JavaScript that will be executed by Settings Hub action button.
+		// Settings Hub injects this into onclick="" attribute.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Inline JavaScript function call
+		echo 'silverAssistRevalidateCheckUpdates(); return false;';
 	}
 
 	/**
