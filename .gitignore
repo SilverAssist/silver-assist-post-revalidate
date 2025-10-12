@@ -39,3 +39,4 @@ wp-content/cache/
 
 # Build files
 *.zip
+tests/TESTING_TODO.md
