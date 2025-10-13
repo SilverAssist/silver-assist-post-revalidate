@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Planned
+
+- Custom post type support for manual revalidation
+- Bulk revalidation tool
+- Revalidation queue system
+
 ## [Unreleased]
+
+## [1.4.0] - 2025-10-12
 
 ### Added
 
@@ -27,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Comprehensive Tests**: 10 integration tests for complete feature coverage
 - **New Class**: `ManualRevalidation` handles all manual revalidation functionality
 - **New JavaScript**: `manual-revalidate.js` provides AJAX handler for meta box button
+- **Performance Test Suite**: Comprehensive benchmark tests for performance optimization
+  - **6 Performance Tests**: Bulk operations, memory limits, N+1 queries, transient performance, single operations, log rotation
+  - **Baseline Metrics**: Establishes performance benchmarks for future optimization work
+  - **Test Coverage**: All tests passing with metrics within acceptable limits
+    - Bulk revalidation: 395ms for 100 posts (target <10s) ✅
+    - Memory usage: <10MB for 100 entries ✅
+    - N+1 queries: No linear scaling detected ✅
+    - Transient operations: 35ms for 100 operations ✅
+    - Single revalidation: 4.82ms (target <100ms) ✅
+    - Log rotation: 482ms with FIFO verified ✅
 
 ### Changed
 
@@ -47,6 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `revalidate_paths()` to accept `$trigger` parameter
   - Log entries now include 'trigger' field for analytics
   - Backward compatible: default trigger is 'auto'
+- **Test Infrastructure**: Updated factory calls from `$this->factory` to `static::factory()` across all test files
+  - Fixes deprecation warnings in recent PHPUnit versions
+  - Updated in: `ManualRevalidation_Test`, `TransientCooldown_Test`, `Revalidate_Test`, `Performance_Test`
 
 ### Improved
 
@@ -63,16 +84,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Settings Hub Integration**: Added missing `echo` statement in update check callback
   - Settings Hub requires callbacks to echo JavaScript, not return it
   - Ensures "Check Updates" button functions correctly in Settings Hub dashboard
+- **PHPStan Compliance**: Fixed type error in `ManualRevalidation.php` - cast post ID to string for `esc_attr()`
+- **Code Quality**: All PHPStan level 8 checks passing
 
-### Planned
-
-- Custom post type support for manual revalidation
-- Bulk revalidation tool
-- Revalidation queue system
-
-## [1.3.1] - 2025-10-12
+## [1.3.1] - 2025-10-11
 
 ### Changed
+
 - **PHP Requirement**: Lowered minimum PHP version from 8.3 to 8.2
   - Expands compatibility to more hosting providers
   - All core functionality tested and working on PHP 8.2+
@@ -420,11 +438,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WordPress i18n ready with text domain
 - Example Next.js API handler
 - Troubleshooting guide
-
-## Version History
-
-- **1.0.1** - Settings link enhancement (October 6, 2025)
-- **1.0.0** - Initial release (October 6, 2025)
 
 ---
 

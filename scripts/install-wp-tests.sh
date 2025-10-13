@@ -7,7 +7,7 @@
 #
 # @package RevalidatePosts
 # @since 1.2.0
-# @version 1.3.1
+# @version 1.4.0
 #
 # Usage:
 #   bash scripts/install-wp-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [skip-database-creation]
