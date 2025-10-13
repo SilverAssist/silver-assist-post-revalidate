@@ -22,7 +22,7 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
 
@@ -92,7 +92,7 @@ jobs:
 
         steps:
             - name: 📥 Checkout code for testing
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: 🐘 Setup PHP ${{ matrix.php }}
               uses: shivammathur/setup-php@v2
@@ -192,7 +192,7 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: 🐘 Setup PHP
               uses: shivammathur/setup-php@v2
