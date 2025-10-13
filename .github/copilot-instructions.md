@@ -42,7 +42,8 @@ silver-assist-post-revalidate/
 ├── .github/
 │   ├── copilot-instructions.md
 │   └── workflows/
-│       └── release.yml         # GitHub Actions CI/CD
+│       ├── release.yml              # Release workflow (uses run-quality-checks.sh)
+│       └── dependency-updates.yml   # Dependency workflow (uses run-quality-checks.sh)
 ├── assets/
 │   ├── css/
 │   │   └── admin-debug-logs.css  # Debug logs styling with CSS variables
@@ -55,6 +56,7 @@ silver-assist-post-revalidate/
 │   └── Updater.php             # GitHub auto-update integration
 ├── scripts/
 │   ├── build-release.sh        # Production build generator
+│   ├── run-quality-checks.sh   # Centralized quality checks runner (NEW v1.4.0)
 │   └── update-version.sh       # Automated version management
 ├── silver-assist-post-revalidate.php  # Main plugin file
 ├── composer.json               # Dependencies and PSR-4 autoloading
@@ -255,21 +257,148 @@ The plugin uses Composer for dependency management:
 
 ## Quality Assurance
 
-### Required Quality Checks
+### ⚠️ CRITICAL: Use Centralized Quality Checks Script
+
+**ALWAYS use `scripts/run-quality-checks.sh` for running quality checks.** This script is the single source of truth for all quality standards and ensures consistency across local development, CI/CD workflows, and manual testing.
+
+#### Quick Start
 
 ```bash
-# 1. Fix coding standards automatically
-composer install
+# Run ALL quality checks (recommended before commit)
+bash scripts/run-quality-checks.sh all
+
+# Run only fast checks (no WordPress Test Suite setup)
+bash scripts/run-quality-checks.sh --skip-wp-setup phpcs phpstan
+
+# Run specific checks
+bash scripts/run-quality-checks.sh phpcs phpstan syntax
+bash scripts/run-quality-checks.sh phpunit
+
+# Get help
+bash scripts/run-quality-checks.sh --help
+```
+
+### Centralized Quality Checks Script
+
+Location: `scripts/run-quality-checks.sh`
+
+**Purpose**: Single source of truth for all quality checks used in CI/CD workflows and local development.
+
+#### Available Checks
+
+1. **composer-validate** - Validates composer.json and composer.lock
+2. **phpcs** - WordPress Coding Standards (--warning-severity=0)
+3. **phpstan** - Static Analysis Level 8
+4. **phpunit** - PHPUnit with WordPress Test Suite
+5. **syntax** - PHP syntax check (php -l) on all files
+6. **all** - Runs all checks in order (default)
+
+#### Configuration Options
+
+```bash
+--help                  Show help message
+--verbose               Verbose output (set -x)
+--skip-wp-setup         Skip WordPress Test Suite setup (for fast checks)
+--php-version VERSION   PHP version (default: 8.3)
+--wp-version VERSION    WordPress version (default: latest)
+--db-name NAME          Database name (default: wordpress_test)
+--db-user USER          Database user (default: root)
+--db-pass PASS          Database password (default: root)
+--db-host HOST          Database host (default: localhost)
+```
+
+#### Usage Examples
+
+```bash
+# Development workflow (fast checks before commit)
+bash scripts/run-quality-checks.sh --skip-wp-setup phpcs phpstan
+
+# Full pre-commit check with all tests
+bash scripts/run-quality-checks.sh all
+
+# CI/CD mode (used by release.yml and dependency-updates.yml)
+bash scripts/run-quality-checks.sh all
+
+# Debug mode with verbose output
+bash scripts/run-quality-checks.sh --verbose phpunit
+
+# Custom database configuration
+bash scripts/run-quality-checks.sh \
+  --db-name my_test_db \
+  --db-pass secret \
+  phpunit
+
+# Setup WordPress Test Suite only
+bash scripts/run-quality-checks.sh setup-wp
+```
+
+#### What It Does
+
+1. **Setup Phase** (if not skipped):
+   - Installs system dependencies (subversion, mysql-client)
+   - Starts MySQL service
+   - Creates test database
+   - Installs WordPress Test Suite via `install-wp-tests.sh`
+
+2. **Quality Checks Phase**:
+   - Runs selected checks in order
+   - Each check has colored output with section headers
+   - Exits on first error (`set -e`)
+   - Shows summary at the end
+
+3. **Output Format**:
+   - 🎨 Colored output (green=success, red=error, yellow=warning, blue=info)
+   - Clear section headers with decorative borders
+   - Summary of all checks at the end
+   - Exit code 0 on success, 1 on failure
+
+#### Integration with Workflows
+
+**release.yml**:
+```yaml
+- name: 🧪 Run Quality Checks
+  run: bash scripts/run-quality-checks.sh all
+```
+
+**dependency-updates.yml**:
+```yaml
+- name: 🧪 Run Quality Checks
+  run: bash scripts/run-quality-checks.sh --skip-wp-setup all
+```
+
+### Manual Quality Checks (DEPRECATED - Use Script Instead)
+
+**⚠️ WARNING**: Running individual commands is deprecated. Use `run-quality-checks.sh` instead.
+
+For reference only (do NOT use these directly):
+
+```bash
+# DEPRECATED: Use run-quality-checks.sh phpcs instead
 vendor/bin/phpcbf
+vendor/bin/phpcs --warning-severity=0
 
-# 2. Check remaining coding standards issues
-vendor/bin/phpcs
-
-# 3. Run static analysis
+# DEPRECATED: Use run-quality-checks.sh phpstan instead  
 php -d memory_limit=1G vendor/bin/phpstan analyse Includes/ --no-progress
 
-# 4. Syntax validation
+# DEPRECATED: Use run-quality-checks.sh syntax instead
 find Includes/ -name "*.php" -exec php -l {} \;
+
+# DEPRECATED: Use run-quality-checks.sh phpunit instead
+vendor/bin/phpunit
+```
+
+### Required Quality Checks Before Commit
+
+**MANDATORY**: Run this command before every commit:
+
+```bash
+bash scripts/run-quality-checks.sh --skip-wp-setup phpcs phpstan
+```
+
+**RECOMMENDED**: Run full suite including tests:
+
+```bash
+bash scripts/run-quality-checks.sh all
 ```
 
 ### PHPStan Configuration
@@ -277,15 +406,40 @@ find Includes/ -name "*.php" -exec php -l {} \;
 - **Memory**: 1GB minimum
 - **Configuration**: `phpstan.neon`
 - **Type Safety**: Handle functions returning `string|false` properly
+- **Execution**: Use `bash scripts/run-quality-checks.sh phpstan` instead of direct command
 
-### Testing Workflow
-1. Write code following standards
-2. Run `vendor/bin/phpcbf` to auto-fix formatting
-3. Run `vendor/bin/phpcs` to check remaining issues
-4. Run `vendor/bin/phpstan` for static analysis
-5. Test functionality in WordPress environment
-6. Verify all admin settings work correctly
-7. Test revalidation with actual endpoint
+### Development Workflow
+
+**CRITICAL**: Always use the centralized quality checks script for validation.
+
+1. **Write code** following WordPress and PHP standards
+2. **Auto-fix formatting**: `bash scripts/run-quality-checks.sh --skip-wp-setup phpcs`
+   - PHPCBF runs automatically within the script
+3. **Run fast checks**: `bash scripts/run-quality-checks.sh --skip-wp-setup phpcs phpstan`
+   - Validates code style and static analysis without WordPress setup
+4. **Run full test suite**: `bash scripts/run-quality-checks.sh all`
+   - Includes PHPUnit tests with WordPress Test Suite
+5. **Test functionality** in WordPress environment
+6. **Verify admin settings** work correctly
+7. **Test revalidation** with actual endpoint
+
+### Pre-Commit Checklist
+
+✅ **Mandatory** (fast, ~10 seconds):
+```bash
+bash scripts/run-quality-checks.sh --skip-wp-setup phpcs phpstan
+```
+
+✅ **Recommended** (full suite, ~2 minutes):
+```bash
+bash scripts/run-quality-checks.sh all
+```
+
+✅ **Verify**:
+- No PHPCS errors
+- No PHPStan errors
+- All PHPUnit tests passing
+- No PHP syntax errors
 
 ### GitHub Actions and CI/CD Workflow Management
 
