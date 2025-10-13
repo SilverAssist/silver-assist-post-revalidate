@@ -584,10 +584,8 @@ class Revalidate
 					'code'    => $response_code,
 					'message' => \wp_remote_retrieve_response_message( $response ),
 					'body'    => $response_body,
-					'headers' => is_array( $headers ) ? $headers : ( method_exists( $headers, 'getAll' ) ? $headers->getAll() : [] ),
-				];
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					'headers' => is_array( $headers ) ? $headers : $headers->getAll(),
+				];              if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// Log success if WP_DEBUG is enabled.
 					/* translators: %s: revalidated path */
 					$message = \sprintf(
