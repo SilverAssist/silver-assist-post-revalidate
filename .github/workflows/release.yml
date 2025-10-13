@@ -104,60 +104,11 @@ jobs:
             - name: 📦 Install dependencies for testing
               run: composer install --optimize-autoloader --no-progress
 
-            - name: 🧪 Run quality checks
+            - name: 🧪 Run Quality Checks (PHPCS + PHPStan + PHPUnit + Syntax)
               run: |
-                  echo "🔍 Running PHPCS..."
-                  vendor/bin/phpcs --warning-severity=0
-                  echo "✅ PHPCS passed"
-                  
-                  echo "🔍 Running PHPStan..."
-                  php -d memory_limit=1G vendor/bin/phpstan analyse Includes/ --no-progress
-                  echo "✅ PHPStan passed"
-
-            - name: 📦 Install system dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y subversion mysql-client
-
-            - name: 🐘 Setup MySQL
-              run: |
-                  sudo systemctl start mysql.service
-                  mysql -e "DROP DATABASE IF EXISTS wordpress_test;" -uroot -proot
-                  mysql -e "CREATE DATABASE wordpress_test;" -uroot -proot
-                  echo "✅ Database wordpress_test created"
-
-            - name: 🐘 Install WordPress Test Suite
-              run: |
-                  echo "📦 Installing WordPress Test Suite..."
-                  # Set skip_database_creation to true since we already created the database
-                  bash scripts/install-wp-tests.sh wordpress_test root 'root' localhost latest true
-                  echo "✅ WordPress Test Suite installed"
-
-            - name: 🧪 Run unit tests
-              run: |
-                  echo "🧪 Running PHPUnit tests..."
-                  vendor/bin/phpunit
-                  echo "✅ All tests passed"
-
-            - name: 🧪 Test plugin structure and syntax
-              run: |
-                  echo "🔍 Testing plugin structure..."
-
-                  # Check if main plugin file exists and is valid
-                  if [ ! -f "silver-assist-post-revalidate.php" ]; then
-                    echo "❌ Main plugin file not found"
-                    exit 1
-                  fi
-
-                  # Basic PHP syntax check on main file
-                  php -l silver-assist-post-revalidate.php
-                  echo "✅ Main plugin file syntax OK"
-
-                  # Check all PHP files in Includes directory
-                  if [ -d "Includes" ]; then
-                    find Includes -name "*.php" -exec php -l {} \;
-                    echo "✅ All source files syntax OK"
-                  fi
+                  echo "� Running centralized quality checks..."
+                  bash scripts/run-quality-checks.sh all
+                  echo "✅ All quality checks passed"
 
                   # Verify plugin header
                   if grep -q "Plugin Name: Silver Assist Post Revalidate" silver-assist-post-revalidate.php; then

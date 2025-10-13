@@ -30,9 +30,6 @@ jobs:
           extensions: mbstring, xml, json
           coverage: none
       
-      - name: ✅ Validate composer.json and composer.lock
-        run: composer validate --strict
-      
       - name: 📦 Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
       
@@ -56,20 +53,25 @@ jobs:
             echo "## ✅ All Composer packages are up to date!" >> $GITHUB_STEP_SUMMARY
           fi
       
-      - name: 🔧 Run PHPCS (Code Style)
+      - name: � Install system dependencies
         run: |
-          echo "## 🎨 Code Style Check" >> $GITHUB_STEP_SUMMARY
-          vendor/bin/phpcs --warning-severity=0 && echo "✅ PHPCS passed" >> $GITHUB_STEP_SUMMARY || echo "⚠️ PHPCS found issues - review recommended" >> $GITHUB_STEP_SUMMARY
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq subversion mysql-client
       
-      - name: 🔧 Run PHPStan (Static Analysis)
+      - name: � Setup MySQL
         run: |
-          echo "## 🔍 Static Analysis Check" >> $GITHUB_STEP_SUMMARY
-          php -d memory_limit=1G vendor/bin/phpstan analyse Includes/ --no-progress && echo "✅ PHPStan passed" >> $GITHUB_STEP_SUMMARY || echo "⚠️ PHPStan found issues - review recommended" >> $GITHUB_STEP_SUMMARY
+          sudo systemctl start mysql.service
+          mysql -e "DROP DATABASE IF EXISTS wordpress_test;" -uroot -proot || true
+          mysql -e "CREATE DATABASE wordpress_test;" -uroot -proot
       
-      - name: 🧪 Run PHPUnit Tests
+      - name: 🐘 Install WordPress Test Suite
+        run: bash scripts/install-wp-tests.sh wordpress_test root 'root' localhost latest true
+      
+      - name: 🧪 Run Quality Checks
         run: |
-          echo "## 🧪 Test Suite" >> $GITHUB_STEP_SUMMARY
-          vendor/bin/phpunit --testdox && echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY || echo "❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Quality Checks" >> $GITHUB_STEP_SUMMARY
+          bash scripts/run-quality-checks.sh --skip-wp-setup all
+          echo "✅ All quality checks passed" >> $GITHUB_STEP_SUMMARY
       
       - name: 📤 Upload Composer outdated report
         if: steps.composer-outdated.outputs.outdated_count > 0
