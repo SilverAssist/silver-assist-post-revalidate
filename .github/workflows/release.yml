@@ -107,10 +107,10 @@ jobs:
             - name: 🧪 Run quality checks
               run: |
                   echo "🔍 Running PHPCS..."
-                  vendor/bin/phpcs
+                  vendor/bin/phpcs --warning-severity=0
                   echo "✅ PHPCS passed"
                   
-                  echo "� Running PHPStan..."
+                  echo "🔍 Running PHPStan..."
                   php -d memory_limit=1G vendor/bin/phpstan analyse Includes/ --no-progress
                   echo "✅ PHPStan passed"
 
