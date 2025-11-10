@@ -14,6 +14,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   check-composer-updates:
     name: 📦 Check Composer Dependencies
