@@ -140,6 +140,8 @@ jobs:
         name: �🔨 Build Release
         runs-on: ubuntu-latest
         needs: [validate-release, test-release]
+        permissions:
+            contents: write
 
         steps:
             - name: 📥 Checkout code
