@@ -21,6 +21,8 @@ jobs:
   check-composer-updates:
     name: 📦 Check Composer Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: 📥 Checkout code
@@ -87,6 +89,8 @@ jobs:
   security-audit:
     name: 🔒 Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: 📥 Checkout code
