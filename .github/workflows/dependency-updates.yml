@@ -26,10 +26,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v5.2.2
       
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
         with:
           php-version: '8.3'
           extensions: mbstring, xml, json
@@ -80,7 +80,7 @@ jobs:
       
       - name: 📤 Upload Composer outdated report
         if: steps.composer-outdated.outputs.outdated_count > 0
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # v5.0.0
         with:
           name: composer-outdated-report
           path: composer-outdated.json
@@ -94,10 +94,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v5.2.2
       
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
         with:
           php-version: '8.3'
           extensions: mbstring, xml, json
@@ -127,7 +127,7 @@ jobs:
       
       - name: 📤 Upload security report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # v5.0.0
         with:
           name: security-audit-report
           path: composer-audit.json
@@ -146,7 +146,7 @@ jobs:
     steps:
       - name: 📋 Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@dbb049abf0d30eba13dc4c78e4ace5f3e9c0b4fc # v2.2.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       
@@ -170,7 +170,7 @@ jobs:
       
       - name: ⚠️ Comment on major version updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-major'
-        uses: actions/github-script@v8
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v8.0.0
         with:
           script: |
             github.rest.issues.createComment({
