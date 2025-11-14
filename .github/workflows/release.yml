@@ -24,7 +24,7 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v5.2.2
               with:
                   fetch-depth: 0
 
@@ -96,10 +96,10 @@ jobs:
 
         steps:
             - name: 📥 Checkout code for testing
-              uses: actions/checkout@v5
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v5.2.2
 
             - name: 🐘 Setup PHP ${{ matrix.php }}
-              uses: shivammathur/setup-php@v2
+              uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
               with:
                   php-version: ${{ matrix.php }}
                   extensions: curl, json, mbstring
@@ -149,10 +149,10 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v5.2.2
 
             - name: 🐘 Setup PHP
-              uses: shivammathur/setup-php@v2
+              uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
               with:
                   php-version: "8.2"
                   extensions: curl, json, mbstring
@@ -297,7 +297,7 @@ jobs:
                   fi
 
             - name: 📤 Upload build artifacts
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@1746f4ab65b179e0ea60a494b83293b640dd5bba # v5.0.0
               with:
                   name: silver-assist-post-revalidate-${{ needs.validate-release.outputs.version }}
                   path: |
@@ -326,7 +326,7 @@ jobs:
                   git push origin "$TAG_NAME"
 
             - name: 🎉 Create GitHub Release
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.1.0
               with:
                   tag_name: ${{ needs.validate-release.outputs.tag_name }}
                   name: "Silver Assist Post Revalidate v${{ needs.validate-release.outputs.version }}"
