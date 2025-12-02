@@ -26,10 +26,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v5.2.2
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
         with:
           php-version: '8.3'
           extensions: mbstring, xml, json
@@ -80,7 +80,7 @@ jobs:
       
       - name: 📤 Upload Composer outdated report
         if: steps.composer-outdated.outputs.outdated_count > 0
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v5.0.0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: composer-outdated-report
           path: composer-outdated.json
@@ -94,10 +94,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v5.2.2
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       
       - name: 🐘 Setup PHP
-        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
         with:
           php-version: '8.3'
           extensions: mbstring, xml, json
@@ -127,7 +127,7 @@ jobs:
       
       - name: 📤 Upload security report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v5.0.0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: security-audit-report
           path: composer-audit.json
@@ -146,7 +146,7 @@ jobs:
     steps:
       - name: 📋 Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@dbb049abf0d30eba13dc4c78e4ace5f3e9c0b4fc # v2.2.0
+        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b # v2.4.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       

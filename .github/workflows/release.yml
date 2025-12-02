@@ -24,7 +24,7 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v5.2.2
+              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
               with:
                   fetch-depth: 0
 
@@ -96,10 +96,10 @@ jobs:
 
         steps:
             - name: 📥 Checkout code for testing
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v5.2.2
+              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
             - name: 🐘 Setup PHP ${{ matrix.php }}
-              uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
               with:
                   php-version: ${{ matrix.php }}
                   extensions: curl, json, mbstring
@@ -149,10 +149,10 @@ jobs:
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v5.2.2
+              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
             - name: 🐘 Setup PHP
-              uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
               with:
                   php-version: "8.2"
                   extensions: curl, json, mbstring
@@ -297,7 +297,7 @@ jobs:
                   fi
 
             - name: 📤 Upload build artifacts
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v5.0.0
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
               with:
                   name: silver-assist-post-revalidate-${{ needs.validate-release.outputs.version }}
                   path: |
@@ -326,7 +326,7 @@ jobs:
                   git push origin "$TAG_NAME"
 
             - name: 🎉 Create GitHub Release
-              uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.1.0
+              uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
               with:
                   tag_name: ${{ needs.validate-release.outputs.tag_name }}
                   name: "Silver Assist Post Revalidate v${{ needs.validate-release.outputs.version }}"
