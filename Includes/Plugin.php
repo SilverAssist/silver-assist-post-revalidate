@@ -175,7 +175,7 @@ class Plugin
 	{
 		$settings_link = sprintf(
 			'<a href="%s">%s</a>',
-			\esc_url( \admin_url( 'options-general.php?page=silver-assist-revalidate' ) ),
+			\esc_url( \admin_url( 'admin.php?page=silver-assist-revalidate' ) ),
 			\esc_html__( 'Settings', 'silver-assist-revalidate-posts' )
 		);
 
