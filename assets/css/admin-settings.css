@@ -1,0 +1,335 @@
+/**
+ * Silver Assist Post Revalidate - Admin Settings Styles
+ *
+ * Card-based design system for the plugin settings page.
+ * Follows the Silver Assist dashboard-styles SKILL.md patterns for visual
+ * consistency across all Silver Assist plugins.
+ *
+ * @package SilverAssist\PostRevalidate
+ * @since 1.2.0
+ * @author Silver Assist
+ */
+
+/* ==========================================================================
+   CSS Custom Properties
+   ========================================================================== */
+
+:root {
+	/* Colors - Primary */
+	--sa-color-primary: #2271b1;
+	--sa-color-primary-hover: #135e96;
+
+	/* Colors - Status: Success */
+	--sa-success-bg: #d4edda;
+	--sa-success-text: #155724;
+	--sa-success-border: #c3e6cb;
+	--sa-success-primary: #00a32a;
+
+	/* Colors - Status: Error */
+	--sa-error-bg: #f8d7da;
+	--sa-error-text: #721c24;
+	--sa-error-border: #f5c6cb;
+	--sa-error-primary: #d63638;
+
+	/* Colors - Status: Warning */
+	--sa-warning-bg: #fff3cd;
+	--sa-warning-text: #856404;
+	--sa-warning-border: #ffeaa7;
+
+	/* Colors - Text */
+	--sa-text-primary: #1d2327;
+	--sa-text-secondary: #50575e;
+	--sa-text-muted: #646970;
+
+	/* Colors - Background */
+	--sa-bg-primary: #ffffff;
+	--sa-bg-secondary: #f6f7f7;
+
+	/* Colors - Borders */
+	--sa-border-primary: #c3c4c7;
+	--sa-border-light: #e0e0e0;
+	--sa-border-lightest: #f0f0f0;
+
+	/* Spacing */
+	--sa-spacing-xs: 2px;
+	--sa-spacing-sm: 4px;
+	--sa-spacing-md: 8px;
+	--sa-spacing-lg: 12px;
+	--sa-spacing-xl: 16px;
+	--sa-spacing-2xl: 20px;
+	--sa-spacing-3xl: 24px;
+
+	/* Typography */
+	--sa-font-size-xs: 11px;
+	--sa-font-size-sm: 12px;
+	--sa-font-size-base: 13px;
+	--sa-font-size-lg: 14px;
+	--sa-font-size-xl: 16px;
+	--sa-font-size-2xl: 18px;
+	--sa-font-weight-medium: 500;
+	--sa-font-weight-semibold: 600;
+	--sa-font-weight-bold: 700;
+	--sa-letter-spacing-tight: 0.3px;
+
+	/* Border Radius */
+	--sa-radius-sm: 3px;
+	--sa-radius-base: 4px;
+	--sa-radius-lg: 8px;
+	--sa-radius-pill: 20px;
+
+	/* Shadows */
+	--sa-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+	--sa-shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+	/* Transitions */
+	--sa-transition-fast: 0.2s;
+
+	/* Fluid Spacing */
+	--sa-fluid-spacing: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Settings Page Container
+   ========================================================================== */
+
+.sa-revalidate-admin {
+	max-width: 1200px;
+}
+
+/* ==========================================================================
+   Version Badge
+   ========================================================================== */
+
+.sa-revalidate-admin h1 .version-badge {
+	display: inline-block;
+	padding: var(--sa-spacing-xs) var(--sa-spacing-md);
+	border-radius: var(--sa-radius-pill);
+	font-size: var(--sa-font-size-xs);
+	font-weight: var(--sa-font-weight-semibold);
+	background: var(--sa-success-bg);
+	color: var(--sa-success-text);
+	border: 1px solid var(--sa-success-border);
+	text-transform: uppercase;
+	letter-spacing: var(--sa-letter-spacing-tight);
+	vertical-align: middle;
+	margin-left: var(--sa-spacing-md);
+}
+
+/* ==========================================================================
+   Stats Grid (Responsive Card Layout)
+   ========================================================================== */
+
+.sa-revalidate-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: var(--sa-spacing-2xl);
+	margin-block-end: var(--sa-spacing-2xl);
+	container-type: inline-size;
+}
+
+/* ==========================================================================
+   Status Cards
+   ========================================================================== */
+
+.sa-revalidate-admin .status-card {
+	background: var(--sa-bg-primary);
+	border: 1px solid var(--sa-border-primary);
+	border-radius: var(--sa-radius-lg);
+	padding: var(--sa-fluid-spacing);
+	box-shadow: var(--sa-shadow-card);
+	transition: box-shadow var(--sa-transition-fast);
+}
+
+.sa-revalidate-admin .status-card:hover {
+	box-shadow: var(--sa-shadow-card-hover);
+}
+
+/* ==========================================================================
+   Card Header
+   ========================================================================== */
+
+.sa-revalidate-admin .card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: var(--sa-spacing-md);
+	margin: 0 0 var(--sa-spacing-lg);
+	padding: 0 0 var(--sa-spacing-md);
+	border-bottom: 1px solid var(--sa-border-light);
+}
+
+.sa-revalidate-admin .card-header .dashicons {
+	color: var(--sa-color-primary);
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.sa-revalidate-admin .card-header h3 {
+	margin: 0;
+	font-size: var(--sa-font-size-xl);
+	font-weight: var(--sa-font-weight-semibold);
+	line-height: 1.3;
+	flex: 1;
+}
+
+/* ==========================================================================
+   Card Content
+   ========================================================================== */
+
+.sa-revalidate-admin .card-content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sa-spacing-md);
+}
+
+/* ==========================================================================
+   Status Indicators
+   ========================================================================== */
+
+.sa-revalidate-admin .status-indicator {
+	display: inline-block;
+	padding: var(--sa-spacing-xs) var(--sa-spacing-md);
+	border-radius: var(--sa-radius-pill);
+	font-size: var(--sa-font-size-xs);
+	font-weight: var(--sa-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: var(--sa-letter-spacing-tight);
+	white-space: nowrap;
+}
+
+.sa-revalidate-admin .status-indicator.active {
+	background: var(--sa-success-bg);
+	color: var(--sa-success-text);
+	border: 1px solid var(--sa-success-border);
+}
+
+.sa-revalidate-admin .status-indicator.inactive {
+	background: var(--sa-error-bg);
+	color: var(--sa-error-text);
+	border: 1px solid var(--sa-error-border);
+}
+
+.sa-revalidate-admin .status-indicator.warning {
+	background: var(--sa-warning-bg);
+	color: var(--sa-warning-text);
+	border: 1px solid var(--sa-warning-border);
+}
+
+/* ==========================================================================
+   Feature Status Display
+   ========================================================================== */
+
+.sa-revalidate-admin .feature-status {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-block-end: var(--sa-spacing-md);
+	border-block-end: 1px solid var(--sa-border-lightest);
+}
+
+.sa-revalidate-admin .feature-status:last-child {
+	border-block-end: none;
+	padding-block-end: 0;
+}
+
+.sa-revalidate-admin .feature-name {
+	font-weight: var(--sa-font-weight-medium);
+	color: var(--sa-text-primary);
+}
+
+.sa-revalidate-admin .feature-value {
+	display: inline-block;
+	padding: var(--sa-spacing-xs) var(--sa-spacing-md);
+	border-radius: var(--sa-radius-pill);
+	font-size: var(--sa-font-size-xs);
+	font-weight: var(--sa-font-weight-semibold);
+}
+
+.sa-revalidate-admin .feature-value.enabled {
+	background: var(--sa-success-bg);
+	color: var(--sa-success-text);
+}
+
+.sa-revalidate-admin .feature-value.disabled {
+	background: var(--sa-error-bg);
+	color: var(--sa-error-text);
+}
+
+/* ==========================================================================
+   Feature List
+   ========================================================================== */
+
+.sa-revalidate-admin .feature-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sa-revalidate-admin .feature-list li {
+	position: relative;
+	padding: var(--sa-spacing-md) 0 var(--sa-spacing-md) 24px;
+	border-bottom: 1px solid var(--sa-border-lightest);
+	font-size: var(--sa-font-size-base);
+	color: var(--sa-text-secondary);
+}
+
+.sa-revalidate-admin .feature-list li:last-child {
+	border-bottom: none;
+}
+
+.sa-revalidate-admin .feature-list li::before {
+	content: "\f147";
+	font-family: dashicons;
+	position: absolute;
+	left: 0;
+	top: var(--sa-spacing-md);
+	color: var(--sa-success-primary);
+	font-size: 16px;
+}
+
+/* ==========================================================================
+   Card Content Typography
+   ========================================================================== */
+
+.sa-revalidate-admin .card-content > p {
+	margin: var(--sa-spacing-sm) 0;
+	font-size: var(--sa-font-size-base);
+	color: var(--sa-text-secondary);
+}
+
+/* ==========================================================================
+   Form inside Cards
+   ========================================================================== */
+
+.sa-revalidate-admin .status-card .form-table {
+	margin-top: 0;
+}
+
+.sa-revalidate-admin .status-card .form-table th {
+	vertical-align: top;
+	padding-top: var(--sa-spacing-lg);
+}
+
+.sa-revalidate-admin .status-card p.submit {
+	margin: 0;
+	padding: var(--sa-spacing-lg) 0 0;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.sa-revalidate-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.sa-revalidate-admin .status-card {
+		padding: var(--sa-spacing-xl);
+	}
+
+	.sa-revalidate-admin .card-header h3 {
+		font-size: var(--sa-font-size-lg);
+	}
+}

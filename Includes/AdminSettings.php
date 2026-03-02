@@ -87,7 +87,6 @@ class AdminSettings
 		\add_action( 'admin_init', [ $this, 'register_settings' ] );
 		\add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 		\add_action( 'wp_ajax_silver_assist_clear_logs', [ $this, 'ajax_clear_logs' ] );
-		\add_action( 'wp_ajax_silver_assist_revalidate_check_version', [ $this, 'ajax_check_updates' ] );
 	}
 
 	/**
@@ -123,6 +122,7 @@ class AdminSettings
 				'description' => \__( 'Automatic cache revalidation for posts and categories. Triggers revalidation requests when content is created, updated, or deleted.', 'silver-assist-revalidate-posts' ),
 				'version'     => SILVER_ASSIST_REVALIDATE_VERSION,
 				'tab_title'   => \__( 'Post Revalidate', 'silver-assist-revalidate-posts' ),
+				'plugin_file' => SILVER_ASSIST_REVALIDATE_FILE,
 				'actions'     => $actions,
 			]
 		);
@@ -144,7 +144,7 @@ class AdminSettings
 			$actions[] = [
 				'label'    => \__( 'Check Updates', 'silver-assist-revalidate-posts' ),
 				'callback' => [ $this, 'render_check_updates_script' ],
-				'class'    => 'button button-primary',
+				'class'    => 'button',
 			];
 		}
 
@@ -227,10 +227,10 @@ class AdminSettings
 	/**
 	 * Render update check script for Settings Hub action button
 	 *
-	 * Enqueues external JavaScript file and localizes data for AJAX update checking.
-	 * Follows WordPress best practices for script enqueuing.
+	 * Delegates to wp-github-updater's built-in enqueueCheckUpdatesScript() which
+	 * provides centralized JS, AJAX handling, admin notices, and auto-redirect.
 	 *
-	 * @since 1.2.1
+	 * @since 1.4.1
 	 * @return void
 	 */
 	public function render_check_updates_script(): void
@@ -242,37 +242,8 @@ class AdminSettings
 			return;
 		}
 
-		// Enqueue external JavaScript file.
-		\wp_enqueue_script(
-			'revalidate-check-updates',
-			\plugins_url( 'assets/js/admin-check-updates.js', dirname( __DIR__ ) . '/silver-assist-post-revalidate.php' ),
-			[ 'jquery' ],
-			SILVER_ASSIST_REVALIDATE_VERSION,
-			true
-		);
-
-		// Localize script with configuration data.
-		\wp_localize_script(
-			'revalidate-check-updates',
-			'silverAssistRevalidateCheckUpdatesData',
-			[
-				'ajaxurl'   => \admin_url( 'admin-ajax.php' ),
-				'nonce'     => \wp_create_nonce( 'silver_assist_revalidate_version_check' ),
-				'updateUrl' => \admin_url( 'update-core.php' ),
-				'strings'   => [
-					'checking'        => \__( 'Checking for updates...', 'silver-assist-revalidate-posts' ),
-					'updateAvailable' => \__( 'Update available! Redirecting to Updates page...', 'silver-assist-revalidate-posts' ),
-					'upToDate'        => \__( "You're up to date!", 'silver-assist-revalidate-posts' ),
-					'checkError'      => \__( 'Error checking updates. Please try again.', 'silver-assist-revalidate-posts' ),
-					'connectError'    => \__( 'Error connecting to update server.', 'silver-assist-revalidate-posts' ),
-				],
-			]
-		);
-
-		// Echo JavaScript that will be executed by Settings Hub action button.
-		// Settings Hub injects this into onclick="" attribute.
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Inline JavaScript function call
-		echo 'silverAssistRevalidateCheckUpdates(); return false;';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Inline JavaScript from wp-github-updater
+		echo $updater->enqueueCheckUpdatesScript();
 	}
 
 	/**
@@ -418,39 +389,59 @@ class AdminSettings
 
 		// Show error/update messages.
 		\settings_errors( 'silver_assist_revalidate_messages' );
-		?>
-		<div class="wrap">
-			<h1>
-				<?php echo \esc_html( \get_admin_page_title() ); ?>
-				<span style="font-size: 0.6em; font-weight: normal; color: #666; margin-left: 10px;">
-					v<?php echo \esc_html( SILVER_ASSIST_REVALIDATE_VERSION ); ?>
-				</span>
-			</h1>
-			<form method="post" action="options.php">
-				<?php
-				\settings_fields( $this->option_group );
-				\do_settings_sections( $this->page_slug );
-				\submit_button( \__( 'Save Settings', 'silver-assist-revalidate-posts' ) );
-				?>
-			</form>
 
-			<div class="card">
-				<h2><?php \esc_html_e( 'How It Works', 'silver-assist-revalidate-posts' ); ?></h2>
-				<p><?php \esc_html_e( 'This plugin automatically revalidates your content when:', 'silver-assist-revalidate-posts' ); ?></p>
-				<ul style="list-style: disc; margin-left: 20px;">
-					<li><?php \esc_html_e( 'A post is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
-					<li><?php \esc_html_e( 'A post status changes (publish/unpublish)', 'silver-assist-revalidate-posts' ); ?></li>
-					<li><?php \esc_html_e( 'A category is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
-					<li><?php \esc_html_e( 'A tag is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
-				</ul>
-				<p>
-					<?php
-					\esc_html_e(
-						'The plugin sends revalidation requests to your configured endpoint with the affected paths (without domain) and authentication token.',
-						'silver-assist-revalidate-posts'
-					);
-					?>
-				</p>
+		$endpoint  = \get_option( 'revalidate_endpoint', '' );
+		$has_token = ! empty( \get_option( 'revalidate_token', '' ) );
+		?>
+		<div class="wrap sa-revalidate-admin">
+
+			<div class="sa-revalidate-grid">
+
+				<!-- Settings Card -->
+				<div class="status-card">
+					<div class="card-header">
+						<span class="dashicons dashicons-admin-settings"></span>
+						<h3><?php \esc_html_e( 'Revalidation Settings', 'silver-assist-revalidate-posts' ); ?></h3>
+						<span class="status-indicator <?php echo ( ! empty( $endpoint ) && $has_token ) ? 'active' : 'inactive'; ?>">
+							<?php echo ( ! empty( $endpoint ) && $has_token ) ? \esc_html__( 'Configured', 'silver-assist-revalidate-posts' ) : \esc_html__( 'Not configured', 'silver-assist-revalidate-posts' ); ?>
+						</span>
+					</div>
+					<div class="card-content">
+						<form method="post" action="options.php">
+							<?php
+							\settings_fields( $this->option_group );
+							\do_settings_sections( $this->page_slug );
+							\submit_button( \__( 'Save Settings', 'silver-assist-revalidate-posts' ) );
+							?>
+						</form>
+					</div>
+				</div>
+
+				<!-- How It Works Card -->
+				<div class="status-card">
+					<div class="card-header">
+						<span class="dashicons dashicons-update"></span>
+						<h3><?php \esc_html_e( 'How It Works', 'silver-assist-revalidate-posts' ); ?></h3>
+					</div>
+					<div class="card-content">
+						<p><?php \esc_html_e( 'This plugin automatically revalidates your content when:', 'silver-assist-revalidate-posts' ); ?></p>
+						<ul class="feature-list">
+							<li><?php \esc_html_e( 'A post is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+							<li><?php \esc_html_e( 'A post status changes (publish/unpublish)', 'silver-assist-revalidate-posts' ); ?></li>
+							<li><?php \esc_html_e( 'A category is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+							<li><?php \esc_html_e( 'A tag is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+						</ul>
+						<p>
+							<?php
+							\esc_html_e(
+								'The plugin sends revalidation requests to your configured endpoint with the affected paths (without domain) and authentication token.',
+								'silver-assist-revalidate-posts'
+							);
+							?>
+						</p>
+					</div>
+				</div>
+
 			</div>
 
 			<?php $this->render_debug_logs_section(); ?>
@@ -472,11 +463,20 @@ class AdminSettings
 			return;
 		}
 
+		// Enqueue CSS for admin settings page.
+		\wp_enqueue_style(
+			'silver-assist-revalidate-admin',
+			\plugin_dir_url( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ) . 'assets/css/admin-settings.css',
+			[],
+			SILVER_ASSIST_REVALIDATE_VERSION,
+			'all'
+		);
+
 		// Enqueue CSS for debug logs section.
 		\wp_enqueue_style(
 			'silver-assist-debug-logs',
 			\plugin_dir_url( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ) . 'assets/css/admin-debug-logs.css',
-			[],
+			[ 'silver-assist-revalidate-admin' ],
 			SILVER_ASSIST_REVALIDATE_VERSION,
 			'all'
 		);
@@ -554,8 +554,8 @@ class AdminSettings
 	{
 		$logs = \get_option( 'silver_assist_revalidate_logs', [] );
 		?>
-		<div class="card sa-debug-section">
-			<div class="sa-debug-header">
+		<div class="status-card sa-debug-section">
+			<div class="card-header sa-debug-header">
 				<h2><?php \esc_html_e( 'Revalidation Debug Logs', 'silver-assist-revalidate-posts' ); ?></h2>
 				<?php if ( ! empty( $logs ) ) : ?>
 					<button type="button" id="sa-clear-logs-btn" class="button sa-clear-logs">
@@ -657,77 +657,6 @@ class AdminSettings
 			\wp_send_json_success( \__( 'Logs cleared successfully.', 'silver-assist-revalidate-posts' ) );
 		} else {
 			\wp_send_json_error( \__( 'Failed to clear logs.', 'silver-assist-revalidate-posts' ) );
-		}
-	}
-
-	/**
-	 * AJAX handler for checking plugin updates
-	 *
-	 * Implements complete WordPress update cache synchronization:
-	 * 1. Clears plugin version cache (GitHub API cache)
-	 * 2. Clears WordPress update cache (CRITICAL for update-core.php)
-	 * 3. Forces WordPress to check for updates NOW
-	 *
-	 * This ensures the Updates page shows the plugin as updatable.
-	 *
-	 * @since 1.2.1
-	 * @return void
-	 */
-	public function ajax_check_updates(): void
-	{
-		// Validate nonce.
-		if ( ! isset( $_POST['nonce'] ) || ! \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'silver_assist_revalidate_version_check' ) ) {
-			\wp_send_json_error( [ 'message' => \__( 'Security validation failed', 'silver-assist-revalidate-posts' ) ] );
-		}
-
-		// Check user capability - use update_plugins, not manage_options.
-		if ( ! \current_user_can( 'update_plugins' ) ) {
-			\wp_send_json_error( [ 'message' => \__( 'Insufficient permissions', 'silver-assist-revalidate-posts' ) ] );
-		}
-
-		$plugin  = Plugin::instance();
-		$updater = $plugin->get_updater();
-
-		if ( ! $updater ) {
-			\wp_send_json_error( [ 'message' => \__( 'Updater not available', 'silver-assist-revalidate-posts' ) ] );
-		}
-
-		try {
-			// STEP 1: Clear plugin version cache (GitHub API cache).
-			$transient_key = 'silver-assist-revalidate-posts_version_check';
-			\delete_transient( $transient_key );
-
-			// STEP 2: Clear WordPress update cache (CRITICAL).
-			// This forces WordPress to rebuild its update information.
-			\delete_site_transient( 'update_plugins' );
-
-			// STEP 3: Force WordPress to check for updates NOW.
-			// This triggers the 'pre_set_site_transient_update_plugins' hook
-			// which wp-github-updater listens to.
-			\wp_update_plugins();
-
-			// Get update status.
-			$update_available = $updater->isUpdateAvailable();
-			$current_version  = $updater->getCurrentVersion();
-			$latest_version   = $updater->getLatestVersion();
-
-			\wp_send_json_success(
-				[
-					'update_available' => $update_available,
-					'current_version'  => $current_version,
-					'latest_version'   => $latest_version,
-					'message'          => $update_available
-						? \__( 'Update available!', 'silver-assist-revalidate-posts' )
-						: \__( "You're up to date!", 'silver-assist-revalidate-posts' ),
-				]
-			);
-		} catch ( \Exception $e ) {
-			\wp_send_json_error(
-				[
-					'message' => \__( 'Error checking for updates', 'silver-assist-revalidate-posts' ),
-					'error'   => $e->getMessage(),
-				]
-			);
 		}
 	}
 }

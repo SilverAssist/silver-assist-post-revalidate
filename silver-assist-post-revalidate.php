@@ -23,6 +23,7 @@ defined( 'ABSPATH' ) || exit;
 
 // Define plugin constants.
 define( 'SILVER_ASSIST_REVALIDATE_VERSION', '1.4.0' );
+define( 'SILVER_ASSIST_REVALIDATE_FILE', __FILE__ );
 define( 'SILVER_ASSIST_REVALIDATE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 
 // Load composer autoloader.
