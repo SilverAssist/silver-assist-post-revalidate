@@ -7,7 +7,7 @@
 #
 # @package  silver-assist-post-revalidate
 # @author   Silver Assist
-# @version  1.4.0
+# @version 1.5.0
 # @since    1.4.0
 ###############################################################################
 

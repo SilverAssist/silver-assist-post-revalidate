@@ -13,6 +13,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-02
+
+### Changed
+
+- **Admin Dashboard UI**: Aligned with card-based design system for improved visual consistency
+
+### Fixed
+
+- **Settings Link**: Corrected Settings link URL to use `admin.php` after Settings Hub integration
+
+### Security
+
+- **GitHub Actions**: Pinned all GitHub Actions to specific commit SHAs for supply chain security
+- **Workflow Permissions**: Added explicit permissions to all GitHub Actions workflows
+- **CodeQL Scanning**: Added CodeQL security scanning workflow (later removed for optimization)
+
+### CI/CD
+
+- **Centralized Quality Checks**: Refactored quality checks into reusable `run-quality-checks.sh` script
+- **Dependency Updates**: Updated GitHub Actions dependencies (checkout v5→v6, upload-artifact v4→v6, github-script v8)
+- **Dependabot**: Enhanced configuration with groups and improved ignore rules
+
+### Development
+
+- **PHPStan**: Updated from ^1.10 to ^2.1
+- **Dependencies**: Updated development dependencies constraints
+
 ## [1.4.0] - 2025-10-12
 
 ### Added
