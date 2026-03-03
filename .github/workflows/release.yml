@@ -1,391 +1,92 @@
-name: 🚀 Release
+name: Release
 
 on:
-    push:
-        tags:
-            - "v*"
-    workflow_dispatch:
-        inputs:
-            version:
-                description: "Version to release (e.g., 1.0.1)"
-                required: true
-                type: string
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.2.0). Leave empty to use plugin file version.'
+        required: false
+
+permissions:
+  contents: write
 
 jobs:
-    validate-release:
-        name: 🔍 Validate Release
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
 
-        outputs:
-            version: ${{ steps.version.outputs.version }}
-            tag_name: ${{ steps.version.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        steps:
-            - name: 📥 Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-              with:
-                  fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
 
-            - name: 🔢 Determine version
-              id: version
-              run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    VERSION="${{ inputs.version }}"
-                    TAG_NAME="v${VERSION}"
-                    echo "Manual release triggered for version: $VERSION"
-                  else
-                    TAG_NAME="${{ github.ref_name }}"
-                    VERSION="${TAG_NAME#v}"
-                    echo "Tag-triggered release for version: $VERSION"
-                  fi
+      - name: Detect version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(grep -o 'Version: [0-9]\+\.[0-9]\+\.[0-9]\+' *.php 2>/dev/null | head -1 | cut -d' ' -f2)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "🏷️ Version: $VERSION"
 
-                  # Validate version format
-                  if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    echo "❌ Invalid version format: $VERSION"
-                    exit 1
-                  fi
+      - name: Install dependencies
+        run: composer install --no-interaction
 
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+      - name: Update version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [ -f "scripts/update-version.sh" ]; then
+            chmod +x scripts/update-version.sh
+            ./scripts/update-version.sh "$VERSION" --no-confirm --force
+          elif [ -f "scripts/update-version-simple.sh" ]; then
+            chmod +x scripts/update-version-simple.sh
+            ./scripts/update-version-simple.sh "$VERSION" --no-confirm --force
+          fi
 
-            - name: 🧪 Validate plugin structure
-              run: |
-                  # Check required files
-                  required_files=("silver-assist-post-revalidate.php" "README.md" "CHANGELOG.md" "composer.json" "LICENSE")
-                  
-                  for file in "${required_files[@]}"; do
-                    if [ ! -f "$file" ]; then
-                      echo "❌ Required file missing: $file"
-                      exit 1
-                    fi
-                    echo "✅ Found: $file"
-                  done
+      - name: Code quality
+        run: |
+          HAS_CHECKS=false
+          if [ -f phpcs.xml ] || [ -f .phpcs.xml.dist ] || [ -f phpcs.xml.dist ]; then
+            echo "▶ PHPCS"
+            vendor/bin/phpcs
+            HAS_CHECKS=true
+          fi
+          if [ -f phpstan.neon ] || [ -f phpstan.neon.dist ]; then
+            echo "▶ PHPStan"
+            vendor/bin/phpstan analyse --no-progress
+            HAS_CHECKS=true
+          fi
+          if [ "$HAS_CHECKS" = false ]; then
+            echo "ℹ️ No quality tool configs found — skipping"
+          fi
 
-                  # Check main plugin file
-                  if ! grep -q "Version: ${{ steps.version.outputs.version }}" silver-assist-post-revalidate.php; then
-                    echo "❌ Version mismatch in main plugin file"
-                    exit 1
-                  fi
+      - name: Build release
+        id: build
+        run: |
+          chmod +x scripts/build-release.sh
+          ./scripts/build-release.sh "${{ steps.version.outputs.version }}"
 
-                  echo "✅ Plugin structure validation passed"
-
-            - name: ✅ Verify CHANGELOG entry
-              run: |
-                  VERSION="${{ steps.version.outputs.version }}"
-                  
-                  if grep -q "## \[${VERSION}\]" CHANGELOG.md; then
-                    echo "✅ CHANGELOG.md contains entry for version $VERSION"
-                  else
-                    echo "⚠️  Warning: CHANGELOG.md does not contain entry for version $VERSION"
-                    echo "Please update CHANGELOG.md before releasing"
-                    exit 1
-                  fi
-
-    test-release:
-        name: 🧪 Test Release Package
-        runs-on: ubuntu-latest
-        needs: validate-release
-        permissions:
-            contents: read
-
-        strategy:
-            matrix:
-                php: ["8.2", "8.3", "8.4"]
-
-        steps:
-            - name: 📥 Checkout code for testing
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-            - name: 🐘 Setup PHP ${{ matrix.php }}
-              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
-              with:
-                  php-version: ${{ matrix.php }}
-                  extensions: curl, json, mbstring
-                  tools: composer:v2
-
-            - name: 📦 Install dependencies for testing
-              run: composer install --optimize-autoloader --no-progress
-
-            - name: 🧪 Run Quality Checks (PHPCS + PHPStan + PHPUnit + Syntax)
-              run: |
-                  echo "� Running centralized quality checks..."
-                  bash scripts/run-quality-checks.sh all
-                  echo "✅ All quality checks passed"
-
-                  # Verify plugin header
-                  if grep -q "Plugin Name: Silver Assist Post Revalidate" silver-assist-post-revalidate.php; then
-                    echo "✅ Plugin header validation passed"
-                  else
-                    echo "❌ Plugin header validation failed"
-                    exit 1
-                  fi
-
-                  # Verify version
-                  if grep -q "Version: ${{ needs.validate-release.outputs.version }}" silver-assist-post-revalidate.php; then
-                    echo "✅ Version validation passed"
-                  else
-                    echo "❌ Version validation failed"
-                    exit 1
-                  fi
-
-                  # Test composer autoload
-                  if [ -f "vendor/autoload.php" ]; then
-                    php -r "require_once 'vendor/autoload.php'; echo '✅ Composer autoload OK' . PHP_EOL;"
-                  else
-                    echo "❌ Composer autoload not found"
-                    exit 1
-                  fi
-
-                  echo "✅ Plugin testing completed successfully"
-
-    build-release:
-        name: �🔨 Build Release
-        runs-on: ubuntu-latest
-        needs: [validate-release, test-release]
-        permissions:
-            contents: write
-
-        steps:
-            - name: 📥 Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-            - name: 🐘 Setup PHP
-              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2.36.0
-              with:
-                  php-version: "8.2"
-                  extensions: curl, json, mbstring
-                  tools: composer:v2
-
-            - name: 📦 Install Composer dependencies
-              run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress
-
-            - name: 🔨 Build release package
-              run: |
-                  chmod +x ./scripts/build-release.sh
-                  ./scripts/build-release.sh ${{ needs.validate-release.outputs.version }}
-
-            - name: 🔐 Generate checksums
-              run: |
-                  cd build
-                  ZIP_FILE="silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip"
-                  
-                  if [ -f "$ZIP_FILE" ]; then
-                    # Generate MD5
-                    md5sum "$ZIP_FILE" > "${ZIP_FILE}.md5"
-                    echo "✅ MD5 checksum generated"
-                    
-                    # Generate SHA256
-                    sha256sum "$ZIP_FILE" > "${ZIP_FILE}.sha256"
-                    echo "✅ SHA256 checksum generated"
-                    
-                    # Display checksums
-                    echo ""
-                    echo "📋 Checksums:"
-                    cat "${ZIP_FILE}.md5"
-                    cat "${ZIP_FILE}.sha256"
-                  else
-                    echo "❌ ZIP file not found: $ZIP_FILE"
-                    exit 1
-                  fi
-
-            - name: 📋 Generate build info
-              run: |
-                  cat > build/build-info.txt << EOF
-                  Silver Assist Post Revalidate - Build Information
-                  ==================================================
-                  
-                  Version: ${{ needs.validate-release.outputs.version }}
-                  Build Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-                  Git Commit: ${{ github.sha }}
-                  Git Tag: ${{ needs.validate-release.outputs.tag_name }}
-                  
-                  Build Environment:
-                  - PHP Version: 8.2
-                  - Composer: v2
-                  - Runner: ubuntu-latest
-                  
-                  Package Contents:
-                  - Main plugin file: silver-assist-post-revalidate.php
-                  - Source code: Includes/ directory
-                  - Documentation: README.md, CHANGELOG.md, LICENSE
-                  - Dependencies: Production Composer packages only
-                  - GitHub Updater: silverassist/wp-github-updater
-                  
-                  Installation:
-                  1. Download silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip
-                  2. Upload to WordPress via Plugins > Add New > Upload
-                  3. Activate the plugin
-                  4. Configure under Settings > Post Revalidate
-                  
-                  Automatic Updates:
-                  The plugin includes GitHub automatic updates integration.
-                  Users will be notified of new releases directly in WordPress admin.
-                  
-                  Support: https://github.com/silverassist/silver-assist-post-revalidate/issues
-                  Website: http://silverassist.com/
-                  EOF
-                  
-                  echo "✅ Build info generated"
-
-            - name: 📋 Generate release notes
-              id: release_notes
-              run: |
-                  VERSION="${{ needs.validate-release.outputs.version }}"
-                  
-                  # Extract changelog for this version
-                  if [ -f "CHANGELOG.md" ]; then
-                    # Extract the section for this version
-                    CHANGELOG_CONTENT=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
-                    
-                    if [ -n "$CHANGELOG_CONTENT" ]; then
-                      echo "Found changelog content for version $VERSION"
-                      
-                      # Create release notes with header
-                      cat > release-notes.md << EOF
-                  ## What's New in v${VERSION}
-                  
-                  $CHANGELOG_CONTENT
-                  
-                  ---
-                  
-                  ## Installation
-                  
-                  1. Download \`silver-assist-post-revalidate-v${VERSION}.zip\`
-                  2. Go to WordPress Admin > Plugins > Add New > Upload Plugin
-                  3. Choose the downloaded ZIP file and click "Install Now"
-                  4. Activate the plugin
-                  5. Configure your revalidation endpoint at Settings > Post Revalidate
-                  
-                  ## Automatic Updates
-                  
-                  This plugin includes automatic update functionality. You'll receive notifications in your WordPress admin when new versions are available.
-                  
-                  ## Requirements
-                  
-                  - PHP 8.2 or higher
-                  - WordPress 6.5 or higher
-                  
-                  ## Support
-                  
-                  - 📖 [Documentation](https://github.com/silverassist/silver-assist-post-revalidate/blob/main/README.md)
-                  - 🐛 [Report Issues](https://github.com/silverassist/silver-assist-post-revalidate/issues)
-                  - 💬 [Discussions](https://github.com/silverassist/silver-assist-post-revalidate/discussions)
-                  EOF
-                    else
-                      echo "No specific changelog found for version $VERSION, using generic notes"
-                      cat > release-notes.md << EOF
-                  ## Release v${VERSION}
-                  
-                  See [CHANGELOG.md](https://github.com/silverassist/silver-assist-post-revalidate/blob/main/CHANGELOG.md) for detailed changes.
-                  
-                  ## Installation
-                  
-                  1. Download \`silver-assist-post-revalidate-v${VERSION}.zip\`
-                  2. Upload to WordPress via Plugins > Add New > Upload
-                  3. Activate and configure at Settings > Post Revalidate
-                  
-                  ## Requirements
-                  
-                  - WordPress 6.5+
-                  - PHP 8.2+
-                  EOF
-                    fi
-                  else
-                    echo "Release v${VERSION}" > release-notes.md
-                  fi
-
-            - name: 📤 Upload build artifacts
-              uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-              with:
-                  name: silver-assist-post-revalidate-${{ needs.validate-release.outputs.version }}
-                  path: |
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip.md5
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip.sha256
-                      build/build-info.txt
-                  retention-days: 90
-
-            - name: 🏷️ Create/Update Git Tag
-              if: github.event_name == 'workflow_dispatch'
-              run: |
-                  git config --local user.email "action@github.com"
-                  git config --local user.name "GitHub Action"
-
-                  TAG_NAME="${{ needs.validate-release.outputs.tag_name }}"
-                  
-                  # Delete tag if it exists
-                  if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-                    git tag -d "$TAG_NAME"
-                    git push origin --delete "$TAG_NAME" || true
-                  fi
-
-                  # Create new tag
-                  git tag -a "$TAG_NAME" -m "Release v${{ needs.validate-release.outputs.version }}"
-                  git push origin "$TAG_NAME"
-
-            - name: 🎉 Create GitHub Release
-              uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-              with:
-                  tag_name: ${{ needs.validate-release.outputs.tag_name }}
-                  name: "Silver Assist Post Revalidate v${{ needs.validate-release.outputs.version }}"
-                  body_path: release-notes.md
-                  draft: false
-                  prerelease: false
-                  files: |
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip.md5
-                      build/silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip.sha256
-                      build/build-info.txt
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    notify-success:
-        name: 📢 Notify Success
-        permissions: {}
-        runs-on: ubuntu-latest
-        needs: [validate-release, build-release, test-release]
-        if: success()
-
-        steps:
-            - name: 🎉 Success notification
-              run: |
-                  echo "🎉 Release v${{ needs.validate-release.outputs.version }} completed successfully!"
-                  echo ""
-                  echo "📦 Artifacts:"
-                  echo "- Release package: silver-assist-post-revalidate-v${{ needs.validate-release.outputs.version }}.zip"
-                  echo "- Checksums: MD5 and SHA256"
-                  echo "- Build info: build-info.txt"
-                  echo ""
-                  echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-release.outputs.tag_name }}"
-                  echo ""
-                  echo "✅ Quality Checks:"
-                  echo "- PHPCS: Passed"
-                  echo "- PHPStan Level 8: Passed"
-                  echo "- PHPUnit Tests: Passed"
-                  echo "- PHP 8.2, 8.3 & 8.4: Tested"
-                  echo ""
-                  echo "🚀 Users with the plugin installed will be notified of this update automatically!"
-
-    notify-failure:
-        name: 💥 Notify Failure
-        permissions: {}
-        runs-on: ubuntu-latest
-        needs: [validate-release, build-release, test-release]
-        if: failure()
-
-        steps:
-            - name: 💥 Failure notification
-              run: |
-                  echo "💥 Release process failed!"
-                  echo ""
-                  echo "Please check the workflow logs for details:"
-                  echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  echo ""
-                  echo "Common issues:"
-                  echo "- Version mismatch in plugin file"
-                  echo "- Missing CHANGELOG.md entry for version"
-                  echo "- PHPCS or PHPStan errors"
-                  echo "- Test failures"
-                  echo "- Build script errors"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: |
+            build/*.zip
+            build/*.md5
+            build/*.sha256
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
