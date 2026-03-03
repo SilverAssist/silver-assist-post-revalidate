@@ -338,9 +338,9 @@ if [ -d "${PACKAGE_DIR}/vendor" ]; then
         rm -rf "$UPDATER_DIR/tests" 2>/dev/null || true
         rm -rf "$UPDATER_DIR/docs" 2>/dev/null || true
         
-        # Keep only src/ directory and composer.json
+        # Keep src/, assets/, and composer.json
         if [ -d "$UPDATER_DIR/src" ] && [ -f "$UPDATER_DIR/composer.json" ]; then
-            print_success "    ✓ GitHub updater cleaned (kept only src/ and composer.json)"
+            print_success "    ✓ GitHub updater cleaned (kept src/, assets/, and composer.json)"
         else
             print_warning "    ⚠ GitHub updater structure unexpected"
         fi
@@ -367,9 +367,9 @@ if [ -d "${PACKAGE_DIR}/vendor" ]; then
         rm -rf "$HUB_DIR/tests" 2>/dev/null || true
         rm -rf "$HUB_DIR/docs" 2>/dev/null || true
         
-        # Keep only src/ directory and composer.json
+        # Keep src/, assets/, and composer.json
         if [ -d "$HUB_DIR/src" ] && [ -f "$HUB_DIR/composer.json" ]; then
-            print_success "    ✓ Settings Hub cleaned (kept only src/ and composer.json)"
+            print_success "    ✓ Settings Hub cleaned (kept src/, assets/, and composer.json)"
         else
             print_warning "    ⚠ Settings Hub structure unexpected"
         fi
@@ -415,6 +415,20 @@ if [ ! -d "${PACKAGE_DIR}/vendor/silverassist/wp-settings-hub" ]; then
     print_warning "Centralized settings menu may not work properly"
 else
     print_success "  ✓ Settings Hub package included"
+fi
+
+# Check if vendor package assets exist (CSS/JS required at runtime)
+if [ ! -f "${PACKAGE_DIR}/vendor/silverassist/wp-settings-hub/assets/css/settings-hub.css" ]; then
+    print_warning "Settings Hub CSS asset missing: vendor/silverassist/wp-settings-hub/assets/css/settings-hub.css"
+    print_warning "Admin settings page styles will not load properly"
+else
+    print_success "  ✓ Settings Hub CSS asset included"
+fi
+if [ ! -f "${PACKAGE_DIR}/vendor/silverassist/wp-github-updater/assets/js/check-updates.js" ]; then
+    print_warning "GitHub updater JS asset missing: vendor/silverassist/wp-github-updater/assets/js/check-updates.js"
+    print_warning "Update check UI will not work properly"
+else
+    print_success "  ✓ GitHub updater JS asset included"
 fi
 
 # Check if required directories exist
