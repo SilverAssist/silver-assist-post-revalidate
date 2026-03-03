@@ -13,6 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-03-03
+
+### Fixed
+- **Vendor Assets**: Ensure vendor package assets (CSS/JS) are included in release builds
+
+### Changed
+- **Release Pipeline**: Unify release workflow and build script across all plugins
+  - Selective copy strategy replaces copy-all-then-clean approach
+  - Remove `composer.json` from ZIP (not needed at runtime)
+  - Auto-detect plugin structure (directories, main file, version)
+  - Generate MD5 + SHA256 checksums
+
+### Security
+- **GitHub Actions**: Pin all dependencies to SHA hashes for supply chain protection
+  - `actions/checkout@v4.3.1`
+  - `shivammathur/setup-php@v2.36.0`
+  - `softprops/action-gh-release@v2.5.0`
+
+### CI/CD
+- **Dependency Updates**: Bump `actions/upload-artifact` from 6.0.0 to 7.0.0
+
 ## [1.5.0] - 2026-03-02
 
 ### Changed
