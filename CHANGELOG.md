@@ -13,12 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-03-09
+
+### Changed
+
+- **Release Pipeline**: Add Node.js setup and asset build steps to release workflow for minified assets
+- **Release Pipeline**: Make Node.js steps conditional on `package.json` existence to prevent CI failures
+
 ## [1.6.0] - 2026-03-03
 
 ### Fixed
+
 - **Vendor Assets**: Ensure vendor package assets (CSS/JS) are included in release builds
 
 ### Changed
+
 - **Release Pipeline**: Unify release workflow and build script across all plugins
   - Selective copy strategy replaces copy-all-then-clean approach
   - Remove `composer.json` from ZIP (not needed at runtime)
@@ -26,12 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Generate MD5 + SHA256 checksums
 
 ### Security
+
 - **GitHub Actions**: Pin all dependencies to SHA hashes for supply chain protection
   - `actions/checkout@v4.3.1`
   - `shivammathur/setup-php@v2.36.0`
   - `softprops/action-gh-release@v2.5.0`
 
 ### CI/CD
+
 - **Dependency Updates**: Bump `actions/upload-artifact` from 6.0.0 to 7.0.0
 
 ## [1.5.0] - 2026-03-02
@@ -149,6 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2025-10-09
 
 ### Added
+
 - **Comprehensive Integration Tests (Phase 3)**: Added 20 new integration tests for WordPress compatibility
   - **Asset Management Tests** (`AssetsLoading_Test.php`): 8 tests verifying CSS/JS loading, versioning, localization
     - Debug logs CSS/JS load only on settings page
@@ -170,11 +182,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Classic Editor behavior matches Block Editor
 
 ### Changed
+
 - **Test Suite**: Expanded from 106 to 126 tests (47 Unit + 79 Integration)
 - **Test Coverage**: All Phase 3 WordPress integration tests completed
 - **Test Execution**: Full suite runs in ~6 seconds with 100% pass rate
 
 ### Technical Details
+
 - All integration tests use HTTP mocking (`pre_http_request` filter) for fast execution
 - Proper test isolation with setUp/tearDown cleanup
 - Manual hook triggering with `do_action` for precise control
@@ -184,6 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.2] - 2025-10-09
 
 ### Added
+
 - **Cross-Request Deduplication**: Transient-based cooldown to prevent duplicate revalidations
   - 5-second cooldown per path using WordPress transients
   - Prevents multiple HTTP requests from Gutenberg/Block Editor within short timeframe
@@ -192,6 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Works alongside existing single-request deduplication (`processed_posts` array)
 
 ### Fixed
+
 - **Duplicate Revalidation Logs**: Eliminated duplicate logs from multiple HTTP requests
   - Added transient check before sending revalidation requests
   - Skips revalidation if same path was processed within last 5 seconds
@@ -199,6 +215,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Maintains idempotent behavior at CloudFront level
 
 ### Technical Details
+
 - **Revalidate.php** (line 48): Added `disable_cooldown` flag property for test mode
 - **Revalidate.php** (lines 82-94): New `set_cooldown_disabled()` method for testing
 - **Revalidate.php** (lines 454-471): Transient-based cooldown logic in `revalidate_paths()`
@@ -210,6 +227,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All 44 tests passing with new deduplication system
 
 ### Why This Matters
+
 - **Reduced API Calls**: Prevents unnecessary duplicate requests to revalidation endpoint
 - **Better Logs**: Cleaner debug logs without confusing duplicates
 - **Performance**: Reduces server load from rapid-fire Gutenberg saves
@@ -219,6 +237,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.1] - 2025-10-09
 
 ### Added
+
 - **Check Updates Button**: Manual update checking with one-click convenience
   - Added "Check Updates" button on Settings Hub dashboard card
   - Integration with `silverassist/wp-settings-hub` v1.1.0 custom actions feature
@@ -227,11 +246,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New method: `AdminSettings::render_check_updates_script()` for AJAX handling
 
 ### Changed
+
 - **Updated Dependencies**:
   - Upgraded `silverassist/wp-settings-hub` from v1.0.0 to v1.1.0
   - Added support for custom dashboard action buttons
 
 ### Technical Details
+
 - **AdminSettings.php** (lines 118-127): Added `actions` parameter in `register_plugin()` with "Check Updates" button configuration
 - **AdminSettings.php** (lines 211-272): New `render_check_updates_script()` method with complete AJAX handling
   - Uses wp-github-updater's `manualVersionCheck()` endpoint
@@ -243,6 +264,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2025-10-09
 
 ### Added
+
 - **Tag Support**: Complete tag revalidation functionality
   - Automatic revalidation when tags are created, edited, or deleted
   - Tag paths included when posts are saved or deleted
@@ -293,6 +315,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - HTTP mocking for fast, reliable tests (0.3s execution time)
   
 ### Changed
+
 - **Enhanced `Revalidate.php`**: Extended core revalidation class
   - Added 6 new WordPress action hooks (3 for posts, 3 for tags)
   - `on_post_saved()` now includes tag path revalidation
@@ -309,12 +332,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses `wp_localize_script()` for internationalization
 
 ### Fixed
+
 - Status transition revalidation now works correctly for unpublishing posts
   - Previously failed because `on_post_saved()` checked for publish status
   - Now `on_post_status_changed()` handles revalidation directly
   - Properly revalidates post permalink, categories, and tags even after status change
 
 ### Technical
+
 - New `on_post_deleted()` method for post deletion handling (lines 197-249)
 - New `on_post_status_changed()` method for status transitions (lines 254-323)
 - New `on_tag_updated()` method for tag lifecycle events (lines 325-374)
@@ -334,6 +359,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-10-08
 
 ### Added
+
 - **Settings Hub Integration**: Centralized "Silver Assist" settings menu
   - Plugin now appears under unified "Silver Assist" menu in WordPress admin
   - Dashboard with plugin cards showing version and description
@@ -355,12 +381,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optimized vendor directory for smaller package size
 
 ### Changed
+
 - AdminSettings now integrates with Settings Hub for centralized menu
 - Menu location moved from "Settings > Post Revalidate" to "Silver Assist > Post Revalidate"
 - Composer dependencies now installed from Packagist
 - Build script includes Settings Hub package cleanup and validation
 
 ### Technical
+
 - New `Updater.php` class for GitHub updates integration
 - New `register_with_settings_hub()` method in AdminSettings class
 - Updated `composer.json` with Packagist dependencies
@@ -368,6 +396,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added comprehensive documentation to `.github/copilot-instructions.md`
 
 ### Dependencies
+
 - Added: `silverassist/wp-settings-hub: ^1.0` (from Packagist)
 - Added: `silverassist/wp-github-updater: ^1.1` (from Packagist)
 - Existing: `composer/installers: ^2.0`
@@ -375,15 +404,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - 2025-10-06
 
 ### Added
+
 - Settings link in plugins list page for quick access to configuration
   - Direct link from Plugins page to Settings > Post Revalidate
   - Appears as first action link before Deactivate/Delete
   - Improves user experience with one-click access to settings
 
 ### Changed
+
 - Enhanced plugin action links with quick settings access
 
 ### Technical
+
 - New method `add_settings_link()` in Plugin class
 - Added `plugin_action_links` filter integration
 - New unit test for settings link functionality
@@ -392,6 +424,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-10-06
 
 ### Added
+
 - Initial release of Silver Assist Post Revalidate plugin
 - Automatic revalidation on post save/update/delete
 - Category revalidation on create/update/delete
@@ -433,18 +466,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Success/failure notifications
 
 ### License
+
 - Changed from GPL v2 to **Polyform Noncommercial 1.0.0**
 - Allows free use, modification, and distribution for noncommercial purposes
 - Commercial use requires separate commercial license
 - Full license details in LICENSE file
 
 ### Testing
+
 - 13 unit tests with 100% pass rate
 - Brain Monkey + Mockery for WordPress function mocking
 - Custom WP_Post stub for testing without WordPress dependency
 - Tests cover: singleton pattern, post triggers, option saving, sanitization, validation
 
 ### Technical
+
 - Plugin constants: `SILVER_ASSIST_REVALIDATE_VERSION` and `SILVER_ASSIST_REVALIDATE_PLUGIN_DIR`
 - WordPress stubs for testing (php-stubs/wordpress-stubs v6.6+)
 - Yoast PHPUnit Polyfills for compatibility
@@ -453,6 +489,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modern PHP 8.2+ features
 
 ### Features
+
 - **Plugin.php**: Main plugin initialization class
 - **Revalidate.php**: Core revalidation functionality
 - **AdminSettings.php**: Admin settings page
@@ -462,10 +499,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - User capability checks for admin pages
 
 ### Author
+
 - Developer: Silver Assist
-- Website: http://silverassist.com/
+- Website: <http://silverassist.com/>
 
 ### Developer Features
+
 - Composer package configuration
 - PHPCS configuration for WordPress standards
 - PHPStan configuration for static analysis
@@ -474,6 +513,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project documentation in `.github/copilot-instructions.md`
 
 ### Security
+
 - Input sanitization with `sanitize_url()` and `sanitize_text_field()`
 - Output escaping with `esc_html()`, `esc_attr()`, `esc_url()`
 - User capability checks with `current_user_can()`
@@ -481,6 +521,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Direct file access prevention with `ABSPATH` checks
 
 ### Documentation
+
 - Complete README with installation and usage instructions
 - Code documentation with PHPDoc
 - WordPress i18n ready with text domain
