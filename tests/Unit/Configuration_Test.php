@@ -53,7 +53,7 @@ class Configuration_Test extends WP_UnitTestCase {
 	/**
 	 * Test get_enabled_post_types reads from option
 	 *
-	 * @since 1.6.0
+	 * @since 1.7.0
 	 * @return void
 	 */
 	public function test_get_enabled_post_types_reads_from_option(): void {
@@ -72,7 +72,7 @@ class Configuration_Test extends WP_UnitTestCase {
 	/**
 	 * Test get_enabled_post_types falls back to default for invalid option
 	 *
-	 * @since 1.6.0
+	 * @since 1.7.0
 	 * @return void
 	 */
 	public function test_get_enabled_post_types_falls_back_for_invalid_option(): void {
@@ -116,7 +116,7 @@ class Configuration_Test extends WP_UnitTestCase {
 	/**
 	 * Test is_post_type_enabled respects option value
 	 *
-	 * @since 1.6.0
+	 * @since 1.7.0
 	 * @return void
 	 */
 	public function test_is_post_type_enabled_respects_option(): void {

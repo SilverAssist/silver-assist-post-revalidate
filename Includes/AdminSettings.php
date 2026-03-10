@@ -309,7 +309,7 @@ class AdminSettings
 	 * Validates that submitted post types are registered and publicly viewable.
 	 * Returns default ['post'] if the result would be empty.
 	 *
-	 * @since 1.6.0
+	 * @since 1.7.0
 	 * @param mixed $input The post types value to sanitize.
 	 * @return string[] Sanitized array of post type slugs
 	 */
@@ -321,7 +321,12 @@ class AdminSettings
 
 		$sanitized = [];
 		foreach ( $input as $post_type ) {
-			$post_type = \sanitize_key( $post_type );
+			// Guard against nested arrays or non-scalar values to avoid TypeError in PHP 8+.
+			if ( ! is_scalar( $post_type ) ) {
+				continue;
+			}
+
+			$post_type = \sanitize_key( (string) $post_type );
 			if ( \post_type_exists( $post_type ) && \is_post_type_viewable( $post_type ) ) {
 				$sanitized[] = $post_type;
 			}
@@ -339,7 +344,7 @@ class AdminSettings
 	 *
 	 * Displays a checkbox list of all public post types.
 	 *
-	 * @since 1.6.0
+	 * @since 1.7.0
 	 * @return void
 	 */
 	public function render_post_types_field(): void
@@ -352,6 +357,7 @@ class AdminSettings
 		$post_types = \get_post_types( [ 'public' => true ], 'objects' );
 		?>
 		<fieldset class="sa-post-types-fieldset">
+			<input type="hidden" name="silver_assist_revalidate_post_types" value="" />
 			<?php foreach ( $post_types as $post_type ) : ?>
 				<label class="sa-post-type-checkbox">
 					<input
@@ -512,7 +518,7 @@ class AdminSettings
 					<div class="card-content">
 						<p><?php \esc_html_e( 'This plugin automatically revalidates your content when:', 'silver-assist-revalidate-posts' ); ?></p>
 						<ul class="feature-list">
-						<li><?php \esc_html_e( 'An enabled post type is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+							<li><?php \esc_html_e( 'An enabled post type is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A post status changes (publish/unpublish)', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A category is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A tag is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
