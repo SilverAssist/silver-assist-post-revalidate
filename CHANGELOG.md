@@ -7,11 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- Custom post type support for manual revalidation
 - Bulk revalidation tool
 - Revalidation queue system
 
 ## [Unreleased]
+
+## [1.7.0] - 2026-03-09
+
+### Added
+
+- **Post Type Selection UI**: Configurable post types for revalidation via settings page
+  - Checkbox list of all public post types in the Revalidation Settings section
+  - `sanitize_post_types()` validation against registered, publicly viewable post types
+  - Defaults to `['post']` for backward compatibility
+
+### Changed
+
+- **Configuration**: `get_enabled_post_types()` now reads from `silver_assist_revalidate_post_types` option instead of returning hardcoded value
+- **How It Works card**: Updated text to reflect configurable post types
 
 ## [1.6.1] - 2026-03-09
 
