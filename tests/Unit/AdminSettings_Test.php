@@ -49,6 +49,7 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		delete_option( 'revalidate_endpoint' );
 		delete_option( 'revalidate_token' );
 		delete_option( 'silver_assist_revalidate_logs' );
+		delete_option( 'silver_assist_revalidate_post_types' );
 		parent::tearDown();
 	}
 
@@ -131,6 +132,7 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		
 		$this->assertArrayHasKey( 'revalidate_endpoint', $wp_registered_settings );
 		$this->assertArrayHasKey( 'revalidate_token', $wp_registered_settings );
+		$this->assertArrayHasKey( 'silver_assist_revalidate_post_types', $wp_registered_settings );
 	}
 
 	/**
@@ -256,5 +258,65 @@ class AdminSettings_Test extends WP_UnitTestCase {
 		
 		$this->assertStringNotContainsString( '<script>', $result, 'Script tags should be removed' );
 		$this->assertStringNotContainsString( 'alert', $result, 'Alert function should be removed' );
+	}
+
+	/**
+	 * Test that sanitize_post_types filters invalid post types.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_post_types_filters_invalid_types(): void {
+		$instance = AdminSettings::instance();
+		$input    = [ 'post', 'nonexistent_type', 'page' ];
+
+		$result = $instance->sanitize_post_types( $input );
+
+		$this->assertContains( 'post', $result );
+		$this->assertContains( 'page', $result );
+		$this->assertNotContains( 'nonexistent_type', $result );
+	}
+
+	/**
+	 * Test that sanitize_post_types returns default when input is empty.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_post_types_returns_default_for_empty_input(): void {
+		$instance = AdminSettings::instance();
+
+		$this->assertSame( [ 'post' ], $instance->sanitize_post_types( [] ) );
+		$this->assertSame( [ 'post' ], $instance->sanitize_post_types( 'invalid' ) );
+	}
+
+	/**
+	 * Test that sanitize_post_types returns default when all types are invalid.
+	 *
+	 * @return void
+	 */
+	public function test_sanitize_post_types_returns_default_when_all_invalid(): void {
+		$instance = AdminSettings::instance();
+		$input    = [ 'fake_type', 'another_fake' ];
+
+		$result = $instance->sanitize_post_types( $input );
+
+		$this->assertSame( [ 'post' ], $result );
+	}
+
+	/**
+	 * Test that render_post_types_field outputs checkboxes.
+	 *
+	 * @return void
+	 */
+	public function test_render_post_types_field_outputs_checkboxes(): void {
+		$instance = AdminSettings::instance();
+
+		ob_start();
+		$instance->render_post_types_field();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'silver_assist_revalidate_post_types[]', $output );
+		$this->assertStringContainsString( 'type="checkbox"', $output );
+		$this->assertStringContainsString( 'value="post"', $output );
+		$this->assertStringContainsString( 'sa-post-types-fieldset', $output );
 	}
 }
