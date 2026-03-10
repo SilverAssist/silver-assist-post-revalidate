@@ -317,6 +317,29 @@
 }
 
 /* ==========================================================================
+   Post Types Checkbox List
+   ========================================================================== */
+
+.sa-post-types-fieldset {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sa-spacing-md);
+}
+
+.sa-post-type-checkbox {
+	display: flex;
+	align-items: center;
+	gap: var(--sa-spacing-md);
+	cursor: pointer;
+	font-size: var(--sa-font-size-base);
+	color: var(--sa-text-primary);
+}
+
+.sa-post-type-checkbox input[type="checkbox"] {
+	margin: 0;
+}
+
+/* ==========================================================================
    Responsive
    ========================================================================== */
 

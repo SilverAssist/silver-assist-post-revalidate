@@ -41,12 +41,50 @@ class Configuration_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_enabled_post_types_returns_default(): void {
+		delete_option( 'silver_assist_revalidate_post_types' );
 		$config = Configuration::instance();
 		$enabled = $config->get_enabled_post_types();
 
 		$this->assertIsArray( $enabled );
 		$this->assertContains( 'post', $enabled );
 		$this->assertCount( 1, $enabled );
+	}
+
+	/**
+	 * Test get_enabled_post_types reads from option
+	 *
+	 * @since 1.7.0
+	 * @return void
+	 */
+	public function test_get_enabled_post_types_reads_from_option(): void {
+		update_option( 'silver_assist_revalidate_post_types', [ 'post', 'page' ] );
+		$config = Configuration::instance();
+		$enabled = $config->get_enabled_post_types();
+
+		$this->assertIsArray( $enabled );
+		$this->assertContains( 'post', $enabled );
+		$this->assertContains( 'page', $enabled );
+		$this->assertCount( 2, $enabled );
+
+		delete_option( 'silver_assist_revalidate_post_types' );
+	}
+
+	/**
+	 * Test get_enabled_post_types falls back to default for invalid option
+	 *
+	 * @since 1.7.0
+	 * @return void
+	 */
+	public function test_get_enabled_post_types_falls_back_for_invalid_option(): void {
+		update_option( 'silver_assist_revalidate_post_types', '' );
+		$config = Configuration::instance();
+		$enabled = $config->get_enabled_post_types();
+
+		$this->assertIsArray( $enabled );
+		$this->assertContains( 'post', $enabled );
+		$this->assertCount( 1, $enabled );
+
+		delete_option( 'silver_assist_revalidate_post_types' );
 	}
 
 	/**
@@ -73,6 +111,23 @@ class Configuration_Test extends WP_UnitTestCase {
 		$this->assertFalse( $config->is_post_type_enabled( 'page' ) );
 		$this->assertFalse( $config->is_post_type_enabled( 'product' ) );
 		$this->assertFalse( $config->is_post_type_enabled( 'custom_type' ) );
+	}
+
+	/**
+	 * Test is_post_type_enabled respects option value
+	 *
+	 * @since 1.7.0
+	 * @return void
+	 */
+	public function test_is_post_type_enabled_respects_option(): void {
+		update_option( 'silver_assist_revalidate_post_types', [ 'post', 'page' ] );
+		$config = Configuration::instance();
+
+		$this->assertTrue( $config->is_post_type_enabled( 'post' ) );
+		$this->assertTrue( $config->is_post_type_enabled( 'page' ) );
+		$this->assertFalse( $config->is_post_type_enabled( 'product' ) );
+
+		delete_option( 'silver_assist_revalidate_post_types' );
 	}
 
 	/**

@@ -66,16 +66,19 @@ class Configuration {
 	 * Get enabled post types
 	 *
 	 * Returns an array of post type slugs that have revalidation enabled.
-	 * Currently hardcoded to 'post' only. In the future, this will read from
-	 * WordPress options to allow configuration via settings page.
+	 * Reads from WordPress options, defaulting to 'post' only.
 	 *
 	 * @since 1.4.0
-	 * @todo Add get_option() call when settings UI is implemented
 	 * @return string[] Array of enabled post type slugs
 	 */
 	public function get_enabled_post_types(): array {
-		// @todo Future: return get_option('silver_assist_revalidate_post_types', ['post']);
-		return [ 'post' ];
+		$post_types = \get_option( 'silver_assist_revalidate_post_types', [ 'post' ] );
+
+		if ( ! is_array( $post_types ) || empty( $post_types ) ) {
+			return [ 'post' ];
+		}
+
+		return $post_types;
 	}
 
 	/**

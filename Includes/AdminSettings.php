@@ -197,6 +197,16 @@ class AdminSettings
 			]
 		);
 
+		\register_setting(
+			$this->option_group,
+			'silver_assist_revalidate_post_types',
+			[
+				'type'              => 'array',
+				'sanitize_callback' => [ $this, 'sanitize_post_types' ],
+				'default'           => [ 'post' ],
+			]
+		);
+
 		// Add settings section.
 		\add_settings_section(
 			'silver_assist_revalidate_main',
@@ -219,6 +229,15 @@ class AdminSettings
 			'revalidate_token',
 			\__( 'Revalidate Token', 'silver-assist-revalidate-posts' ),
 			[ $this, 'render_token_field' ],
+			$this->page_slug,
+			'silver_assist_revalidate_main'
+		);
+
+		// Add post types field.
+		\add_settings_field(
+			'silver_assist_revalidate_post_types',
+			\__( 'Enabled Post Types', 'silver-assist-revalidate-posts' ),
+			[ $this, 'render_post_types_field' ],
 			$this->page_slug,
 			'silver_assist_revalidate_main'
 		);
@@ -282,6 +301,79 @@ class AdminSettings
 
 		// Sanitize new token value.
 		return \sanitize_text_field( $input );
+	}
+
+	/**
+	 * Sanitize post types field
+	 *
+	 * Validates that submitted post types are registered and publicly viewable.
+	 * Returns default ['post'] if the result would be empty.
+	 *
+	 * @since 1.7.0
+	 * @param mixed $input The post types value to sanitize.
+	 * @return string[] Sanitized array of post type slugs
+	 */
+	public function sanitize_post_types( mixed $input ): array
+	{
+		if ( ! is_array( $input ) ) {
+			return [ 'post' ];
+		}
+
+		$sanitized = [];
+		foreach ( $input as $post_type ) {
+			// Guard against nested arrays or non-scalar values to avoid TypeError in PHP 8+.
+			if ( ! is_scalar( $post_type ) ) {
+				continue;
+			}
+
+			$post_type = \sanitize_key( (string) $post_type );
+			if ( \post_type_exists( $post_type ) && \is_post_type_viewable( $post_type ) ) {
+				$sanitized[] = $post_type;
+			}
+		}
+
+		if ( empty( $sanitized ) ) {
+			return [ 'post' ];
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Render post types field
+	 *
+	 * Displays a checkbox list of all public post types.
+	 *
+	 * @since 1.7.0
+	 * @return void
+	 */
+	public function render_post_types_field(): void
+	{
+		$enabled_types = \get_option( 'silver_assist_revalidate_post_types', [ 'post' ] );
+		if ( ! is_array( $enabled_types ) ) {
+			$enabled_types = [ 'post' ];
+		}
+
+		$post_types = \get_post_types( [ 'public' => true ], 'objects' );
+		?>
+		<fieldset class="sa-post-types-fieldset">
+			<input type="hidden" name="silver_assist_revalidate_post_types" value="" />
+			<?php foreach ( $post_types as $post_type ) : ?>
+				<label class="sa-post-type-checkbox">
+					<input
+						type="checkbox"
+						name="silver_assist_revalidate_post_types[]"
+						value="<?php echo \esc_attr( $post_type->name ); ?>"
+						<?php checked( in_array( $post_type->name, $enabled_types, true ) ); ?>
+					/>
+					<?php echo \esc_html( $post_type->labels->singular_name ); ?>
+				</label>
+			<?php endforeach; ?>
+		</fieldset>
+		<p class="description">
+			<?php \esc_html_e( 'Select which post types should trigger revalidation when created, updated, or deleted.', 'silver-assist-revalidate-posts' ); ?>
+		</p>
+		<?php
 	}
 
 	/**
@@ -426,7 +518,7 @@ class AdminSettings
 					<div class="card-content">
 						<p><?php \esc_html_e( 'This plugin automatically revalidates your content when:', 'silver-assist-revalidate-posts' ); ?></p>
 						<ul class="feature-list">
-							<li><?php \esc_html_e( 'A post is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
+							<li><?php \esc_html_e( 'An enabled post type is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A post status changes (publish/unpublish)', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A category is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
 							<li><?php \esc_html_e( 'A tag is created, updated, or deleted', 'silver-assist-revalidate-posts' ); ?></li>
