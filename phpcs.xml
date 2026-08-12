@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Silver Assist Post Revalidate">
-	<description>WordPress Coding Standards for Silver Assist Post Revalidate Plugin</description>
+	<description>Uses the shared SilverAssistWP ruleset from silverassist/wp-coding-standards.</description>
 
 	<!-- What to scan -->
 	<file>.</file>
@@ -16,33 +16,17 @@
 
 	<!-- Show progress -->
 	<arg value="ps"/>
-	
+
 	<!-- Show colors in terminal -->
 	<arg name="colors"/>
 
 	<!-- Check code for cross-version PHP compatibility. -->
 	<config name="testVersion" value="8.2-"/>
 
-	<!-- Include the WordPress-Extra standard. -->
-	<rule ref="WordPress-Extra">
-		<!-- Allow short array syntax -->
-		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
-		
-		<!-- We use PSR-4 PascalCase filenames, not WordPress hyphenated lowercase -->
-		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
-		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
-		
-		<!-- Allow opening braces on same line (K&R style) -->
-		<exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
-		<exclude name="Generic.Classes.OpeningBraceSameLine"/>
-	</rule>
-	
-	<!-- Allow short array syntax explicitly -->
-	<rule ref="Universal.Arrays.DisallowShortArraySyntax">
-		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found"/>
-	</rule>
+	<rule ref="SilverAssistWP"/>
 
-	<!-- Enforce WordPress naming conventions -->
+	<!-- Verify that everything in the global namespace is prefixed.
+	     Plugin-specific, can't live in the shared ruleset. -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
@@ -51,24 +35,7 @@
 			</property>
 		</properties>
 	</rule>
-
-	<!-- Let's also check that everything is properly documented. -->
-	<rule ref="WordPress-Docs"/>
-
-	<!-- Add in some extra rules from other standards. -->
-	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
-	<rule ref="Generic.Commenting.Todo"/>
 
 	<!-- Check for PHP cross-version compatibility. -->
 	<config name="minimum_supported_wp_version" value="6.5"/>
-
-	<!-- Verify that everything in the global namespace is prefixed. -->
-	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
-		<properties>
-			<property name="prefixes" type="array">
-				<element value="RevalidatePosts"/>
-				<element value="silver_assist_revalidate"/>
-			</property>
-		</properties>
-	</rule>
 </ruleset>
