@@ -10,12 +10,6 @@
 		}
 	],
 	"minimum-stability": "stable",
-	"repositories": [
-		{
-			"type": "path",
-			"url": "/Users/miguel/Projects/wp-coding-standards"
-		}
-	],
 	"require": {
 		"php": ">=8.2",
 		"composer/installers": "^2.0",
