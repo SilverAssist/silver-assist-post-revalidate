@@ -36,7 +36,7 @@ add_action(
 	'plugins_loaded',
 	function () {
 		// Initialize main plugin class.
-		\RevalidatePosts\Plugin::instance();
+		\RevalidatePosts\Plugin::instance()->init();
 	}
 );
 

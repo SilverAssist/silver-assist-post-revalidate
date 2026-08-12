@@ -6,46 +6,29 @@
  *
  * @package RevalidatePosts
  * @since 1.0.0
- * @version 1.5.0
+ * @version 1.8.0
  * @author Silver Assist
  * @license Polyform Noncommercial 1.0.0
  */
 
 namespace RevalidatePosts;
 
+use SilverAssist\PluginKernel\AbstractPlugin;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Plugin initialization class
  *
- * Implements singleton pattern to ensure only one instance exists.
- * Coordinates initialization of Revalidate and AdminSettings classes.
+ * Singleton access (instance()) and the priority-ordered component loading
+ * loop are inherited from AbstractPlugin (silverassist/wp-plugin-kernel) —
+ * this class only declares which components to load (get_components()) and
+ * the plugin-specific setup that runs alongside them (init_hooks()).
  *
  * @since 1.0.0
  */
-class Plugin
+class Plugin extends AbstractPlugin
 {
-	/**
-	 * Singleton instance
-	 *
-	 * @var Plugin|null
-	 */
-	private static ?Plugin $instance = null;
-
-	/**
-	 * Revalidate instance
-	 *
-	 * @var Revalidate|null
-	 */
-	private ?Revalidate $revalidate = null;
-
-	/**
-	 * AdminSettings instance
-	 *
-	 * @var AdminSettings|null
-	 */
-	private ?AdminSettings $admin_settings = null;
-
 	/**
 	 * Updater instance
 	 *
@@ -54,43 +37,37 @@ class Plugin
 	private ?Updater $updater = null;
 
 	/**
-	 * Get singleton instance
+	 * List the component classes this plugin loads
 	 *
-	 * @since 1.0.0
-	 * @return Plugin
+	 * Loading order is determined by each component's get_priority(), not
+	 * by the order they're listed here.
+	 *
+	 * @since 1.8.0
+	 * @return array<class-string>
 	 */
-	public static function instance(): Plugin
+	protected function get_components(): array
 	{
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
+		return [
+			Revalidate::class,
+			AdminSettings::class,
+			ManualRevalidation::class,
+		];
 	}
 
 	/**
-	 * Plugin constructor
+	 * Plugin-level setup that isn't itself a LoadableInterface component
 	 *
-	 * Initializes plugin components.
+	 * Runs after all components have loaded.
 	 *
-	 * @since 1.0.0
-	 */
-	private function __construct()
-	{
-		$this->init_hooks();
-		$this->init_components();
-	}
-
-	/**
-	 * Initialize WordPress hooks
-	 *
-	 * @since 1.0.0
+	 * @since 1.8.0
 	 * @return void
 	 */
-	private function init_hooks(): void
+	protected function init_hooks(): void
 	{
 		\add_action( 'init', [ $this, 'load_textdomain' ] );
 		\add_filter( 'plugin_action_links_' . \plugin_basename( SILVER_ASSIST_REVALIDATE_PLUGIN_DIR . 'silver-assist-post-revalidate.php' ), [ $this, 'add_settings_link' ] );
+
+		$this->init_updater();
 	}
 
 	/**
@@ -106,27 +83,6 @@ class Plugin
 			false,
 			dirname( \plugin_basename( (string) SILVER_ASSIST_REVALIDATE_PLUGIN_DIR ) ) . '/languages'
 		);
-	}
-
-	/**
-	 * Initialize plugin components
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	private function init_components(): void
-	{
-		// Initialize revalidation functionality.
-		$this->revalidate = Revalidate::instance();
-
-		// Initialize admin settings only in admin area.
-		if ( \is_admin() ) {
-			$this->admin_settings = AdminSettings::instance();
-			ManualRevalidation::instance(); // Initialize hooks only.
-		}
-
-		// Initialize GitHub updater for automatic updates.
-		$this->init_updater();
 	}
 
 	/**
@@ -154,17 +110,6 @@ class Plugin
 	}
 
 	/**
-	 * Get Revalidate instance
-	 *
-	 * @since 1.0.0
-	 * @return Revalidate|null
-	 */
-	public function get_revalidate(): ?Revalidate
-	{
-		return $this->revalidate;
-	}
-
-	/**
 	 * Add settings link to plugin action links
 	 *
 	 * @since 1.0.1
@@ -185,17 +130,6 @@ class Plugin
 	}
 
 	/**
-	 * Get AdminSettings instance
-	 *
-	 * @since 1.0.0
-	 * @return AdminSettings|null
-	 */
-	public function get_admin_settings(): ?AdminSettings
-	{
-		return $this->admin_settings;
-	}
-
-	/**
 	 * Get Updater instance
 	 *
 	 * @since 1.0.0
@@ -204,5 +138,35 @@ class Plugin
 	public function get_updater(): ?Updater
 	{
 		return $this->updater;
+	}
+
+	/**
+	 * Get Revalidate instance
+	 *
+	 * @deprecated 1.8.0 Call Revalidate::instance() directly instead.
+	 * @since 1.0.0
+	 * @return Revalidate
+	 */
+	public function get_revalidate(): Revalidate
+	{
+		return Revalidate::instance();
+	}
+
+	/**
+	 * Get AdminSettings instance
+	 *
+	 * Preserves the pre-1.8.0 contract of returning null outside admin
+	 * context. AdminSettings::instance() itself is always constructible
+	 * (it's a lazy singleton, not gated by is_admin() at construction
+	 * time) — should_load() is what now decides whether the plugin's own
+	 * bootstrap initializes it, not whether the class can be instantiated.
+	 *
+	 * @deprecated 1.8.0 Call AdminSettings::instance() directly instead.
+	 * @since 1.0.0
+	 * @return AdminSettings|null
+	 */
+	public function get_admin_settings(): ?AdminSettings
+	{
+		return \is_admin() ? AdminSettings::instance() : null;
 	}
 }

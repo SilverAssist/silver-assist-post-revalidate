@@ -12,6 +12,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Plugin bootstrap**: `Plugin` now extends `silverassist/wp-plugin-kernel`'s
+  `AbstractPlugin` instead of hand-rolling its own singleton and eager
+  constructor-based initialization. `Revalidate`, `AdminSettings`, and
+  `ManualRevalidation` now implement `LoadableInterface` and are loaded
+  through the shared priority-ordered component loader instead of being
+  constructed directly (and unconditionally, for `Revalidate`) inside
+  `Plugin`'s constructor. `AdminSettings`/`ManualRevalidation` declare
+  `should_load(): is_admin()`, replacing the `Plugin`-level `is_admin()`
+  gate that previously decided whether to construct them at all.
+- Main plugin file now calls `Plugin::instance()->init()` on
+  `plugins_loaded` instead of relying on `Plugin::instance()` alone to
+  trigger initialization as a constructor side effect.
+
+### Deprecated
+
+- `Plugin::get_revalidate()` / `get_admin_settings()` — each component is
+  now reachable directly via its own singleton (`Revalidate::instance()`,
+  `AdminSettings::instance()`) rather than tracked redundantly on `Plugin`.
+  Both accessors are kept as thin forwarding wrappers for the rest of the
+  1.x series rather than removed outright, since this project follows
+  Semantic Versioning and they're public API.
+
 ## [1.7.0] - 2026-03-09
 
 ### Added
