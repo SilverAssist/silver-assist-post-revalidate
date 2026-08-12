@@ -13,10 +13,6 @@
 	"repositories": [
 		{
 			"type": "path",
-			"url": "/Users/miguel/Projects/coding-standards"
-		},
-		{
-			"type": "path",
 			"url": "/Users/miguel/Projects/wp-coding-standards"
 		}
 	],
