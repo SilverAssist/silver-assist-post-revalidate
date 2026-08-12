@@ -3,9 +3,7 @@ permissions:
   contents: read
 
 # NOTE: uses SilverAssist/wp-coding-standards@v1's reusable quality-checks.yml.
-# Inert until that package is actually pushed to GitHub and tagged v1 -- see
-# silverassist/wp-coding-standards' PLAN.md "Open decisions" for the
-# Packagist/VCS publish step this depends on.
+# Inert until that package is actually pushed to GitHub and tagged v1.
 
 on:
   push:

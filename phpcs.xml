@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Silver Assist Post Revalidate">
-	<description>Uses the shared SilverAssistWP ruleset from silverassist/wp-coding-standards (see that package's PLAN.md — this repo was its migration pilot).</description>
+	<description>Uses the shared SilverAssistWP ruleset from silverassist/wp-coding-standards.</description>
 
 	<!-- What to scan -->
 	<file>.</file>
