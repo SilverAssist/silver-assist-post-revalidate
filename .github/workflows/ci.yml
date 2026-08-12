@@ -76,5 +76,9 @@ jobs:
           extensions: mbstring, intl, mysql, pdo_mysql
           coverage: none
       - run: composer install --no-interaction --no-progress --optimize-autoloader
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq subversion
       - run: bash scripts/install-wp-tests.sh wordpress_test root 'root' 127.0.0.1 ${{ matrix.wordpress-version }} false
       - run: vendor/bin/phpunit
