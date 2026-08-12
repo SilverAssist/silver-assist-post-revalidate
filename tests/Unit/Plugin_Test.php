@@ -10,6 +10,7 @@
 namespace RevalidatePosts\Tests\Unit;
 
 use RevalidatePosts\AdminSettings;
+use RevalidatePosts\ManualRevalidation;
 use RevalidatePosts\Plugin;
 use RevalidatePosts\Revalidate;
 use WP_UnitTestCase;
@@ -115,10 +116,9 @@ class Plugin_Test extends WP_UnitTestCase {
 	/**
 	 * Test that Revalidate::instance() returns a Revalidate instance.
 	 *
-	 * Revalidate::get_revalidate()/get_admin_settings() accessors were
-	 * removed from Plugin when it adopted silverassist/wp-plugin-kernel:
-	 * each component is now reachable directly via its own singleton
-	 * rather than tracked redundantly on Plugin.
+	 * Since silverassist/wp-plugin-kernel adoption, each component is
+	 * reachable directly via its own singleton rather than only through
+	 * Plugin's accessors.
 	 *
 	 * @return void
 	 */
@@ -138,6 +138,74 @@ class Plugin_Test extends WP_UnitTestCase {
 	 */
 	public function test_admin_settings_instance_returns_instance(): void {
 		$this->assertInstanceOf( AdminSettings::class, AdminSettings::instance() );
+	}
+
+	/**
+	 * Test that the deprecated Plugin::get_revalidate() forwarding
+	 * accessor still works.
+	 *
+	 * @return void
+	 */
+	public function test_deprecated_get_revalidate_forwards_to_instance(): void {
+		$this->assertSame( Revalidate::instance(), Plugin::instance()->get_revalidate() );
+	}
+
+	/**
+	 * Test that the deprecated Plugin::get_admin_settings() forwarding
+	 * accessor preserves the pre-1.8.0 null-outside-admin contract.
+	 *
+	 * @return void
+	 */
+	public function test_deprecated_get_admin_settings_returns_null_outside_admin(): void {
+		$this->assertFalse( is_admin(), 'Precondition: this test runs outside admin context' );
+		$this->assertNull( Plugin::instance()->get_admin_settings() );
+	}
+
+	/**
+	 * Test that Plugin::get_components() lists the admin-only components.
+	 *
+	 * Regression coverage for the loader wiring itself: AdminSettings and
+	 * ManualRevalidation must actually be registered with the plugin's
+	 * component loader, not just implement LoadableInterface in isolation.
+	 *
+	 * @return void
+	 */
+	public function test_get_components_includes_admin_only_components(): void {
+		$method = new \ReflectionMethod( Plugin::class, 'get_components' );
+		$method->setAccessible( true );
+		$components = $method->invoke( Plugin::instance() );
+
+		$this->assertContains( Revalidate::class, $components );
+		$this->assertContains( AdminSettings::class, $components );
+		$this->assertContains( ManualRevalidation::class, $components );
+	}
+
+	/**
+	 * Test that AdminSettings/ManualRevalidation should_load() correctly
+	 * tracks is_admin(), both outside and inside admin context.
+	 *
+	 * This is the actual gate AbstractPlugin::load_components() relies on
+	 * to decide whether to initialize these components — a regression
+	 * here would silently break admin functionality without any of the
+	 * other component test suites (which instantiate singletons directly,
+	 * bypassing the loader) noticing.
+	 *
+	 * @return void
+	 */
+	public function test_admin_only_components_should_load_tracks_is_admin(): void {
+		$this->assertFalse( is_admin(), 'Precondition: this test starts outside admin context' );
+		$this->assertFalse( AdminSettings::instance()->should_load() );
+		$this->assertFalse( ManualRevalidation::instance()->should_load() );
+
+		set_current_screen( 'dashboard' );
+
+		try {
+			$this->assertTrue( is_admin(), 'Precondition: set_current_screen() should switch to admin context' );
+			$this->assertTrue( AdminSettings::instance()->should_load() );
+			$this->assertTrue( ManualRevalidation::instance()->should_load() );
+		} finally {
+			set_current_screen( 'front' );
+		}
 	}
 
 	/**
@@ -185,7 +253,15 @@ class Plugin_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that Revalidate's hooks are registered after Plugin::init().
+	 * Test that Revalidate's hooks are registered by the real plugin bootstrap.
+	 *
+	 * Deliberately does NOT call Plugin::instance()->init() here: doing so
+	 * would make this test pass even if the real plugins_loaded bootstrap
+	 * failed to initialize the plugin, since init() is idempotent and
+	 * would silently repair the missing initialization right before the
+	 * assertion. This must rely solely on tests/bootstrap.php having
+	 * already loaded the plugin the same way production does (see
+	 * muplugins_loaded → plugins_loaded → Plugin::instance()->init()).
 	 *
 	 * Revalidate::should_load() is always true, so it loads unconditionally
 	 * as part of the real plugin bootstrap. AdminSettings/ManualRevalidation
@@ -196,8 +272,6 @@ class Plugin_Test extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_revalidate_component_is_initialized(): void {
-		Plugin::instance()->init();
-
 		$this->assertNotFalse(
 			has_action( 'save_post', [ Revalidate::instance(), 'on_post_saved' ] ),
 			'Revalidate should be initialized and its hooks registered by the real plugin bootstrap'

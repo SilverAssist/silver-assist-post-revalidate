@@ -139,4 +139,34 @@ class Plugin extends AbstractPlugin
 	{
 		return $this->updater;
 	}
+
+	/**
+	 * Get Revalidate instance
+	 *
+	 * @deprecated 1.8.0 Call Revalidate::instance() directly instead.
+	 * @since 1.0.0
+	 * @return Revalidate
+	 */
+	public function get_revalidate(): Revalidate
+	{
+		return Revalidate::instance();
+	}
+
+	/**
+	 * Get AdminSettings instance
+	 *
+	 * Preserves the pre-1.8.0 contract of returning null outside admin
+	 * context. AdminSettings::instance() itself is always constructible
+	 * (it's a lazy singleton, not gated by is_admin() at construction
+	 * time) — should_load() is what now decides whether the plugin's own
+	 * bootstrap initializes it, not whether the class can be instantiated.
+	 *
+	 * @deprecated 1.8.0 Call AdminSettings::instance() directly instead.
+	 * @since 1.0.0
+	 * @return AdminSettings|null
+	 */
+	public function get_admin_settings(): ?AdminSettings
+	{
+		return \is_admin() ? AdminSettings::instance() : null;
+	}
 }

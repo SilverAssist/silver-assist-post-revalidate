@@ -27,11 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `plugins_loaded` instead of relying on `Plugin::instance()` alone to
   trigger initialization as a constructor side effect.
 
-### Removed
+### Deprecated
 
 - `Plugin::get_revalidate()` / `get_admin_settings()` — each component is
   now reachable directly via its own singleton (`Revalidate::instance()`,
   `AdminSettings::instance()`) rather than tracked redundantly on `Plugin`.
+  Both accessors are kept as thin forwarding wrappers for the rest of the
+  1.x series rather than removed outright, since this project follows
+  Semantic Versioning and they're public API.
 
 ## [1.7.0] - 2026-03-09
 
