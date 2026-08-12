@@ -9,7 +9,9 @@
 
 namespace RevalidatePosts\Tests\Unit;
 
+use RevalidatePosts\AdminSettings;
 use RevalidatePosts\Plugin;
+use RevalidatePosts\Revalidate;
 use WP_UnitTestCase;
 
 /**
@@ -111,38 +113,31 @@ class Plugin_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that get_revalidate returns Revalidate instance.
+	 * Test that Revalidate::instance() returns a Revalidate instance.
+	 *
+	 * Revalidate::get_revalidate()/get_admin_settings() accessors were
+	 * removed from Plugin when it adopted silverassist/wp-plugin-kernel:
+	 * each component is now reachable directly via its own singleton
+	 * rather than tracked redundantly on Plugin.
 	 *
 	 * @return void
 	 */
-	public function test_get_revalidate_returns_instance(): void {
-		$plugin     = Plugin::instance();
-		$revalidate = $plugin->get_revalidate();
-
-		$this->assertInstanceOf( \RevalidatePosts\Revalidate::class, $revalidate );
+	public function test_revalidate_instance_returns_instance(): void {
+		$this->assertInstanceOf( Revalidate::class, Revalidate::instance() );
 	}
 
 	/**
-	 * Test that get_admin_settings returns AdminSettings instance in admin.
+	 * Test that AdminSettings::instance() returns an AdminSettings instance.
+	 *
+	 * AdminSettings::instance() is always constructible directly (lazy
+	 * singleton) — is_admin() only gates whether the plugin's own
+	 * bootstrap loads and initializes it automatically via should_load(),
+	 * not whether the class can be instantiated at all.
 	 *
 	 * @return void
 	 */
-	public function test_get_admin_settings_returns_instance_in_admin(): void {
-		// The Plugin class initializes AdminSettings in __construct,
-		// but only in admin context. Since we're in a test environment,
-		// is_admin() returns false by default.
-		// We need to test the getter returns the instance if it exists.
-		$plugin = Plugin::instance();
-		$admin  = $plugin->get_admin_settings();
-
-		// In non-admin test context, this may be null.
-		// The important thing is that the method is callable and returns
-		// the correct type when AdminSettings is initialized.
-		if ( $admin !== null ) {
-			$this->assertInstanceOf( \RevalidatePosts\AdminSettings::class, $admin );
-		} else {
-			$this->assertNull( $admin, 'AdminSettings is null in non-admin context' );
-		}
+	public function test_admin_settings_instance_returns_instance(): void {
+		$this->assertInstanceOf( AdminSettings::class, AdminSettings::instance() );
 	}
 
 	/**
@@ -190,24 +185,22 @@ class Plugin_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that components are initialized.
+	 * Test that Revalidate's hooks are registered after Plugin::init().
+	 *
+	 * Revalidate::should_load() is always true, so it loads unconditionally
+	 * as part of the real plugin bootstrap. AdminSettings/ManualRevalidation
+	 * are admin-only (should_load() === is_admin()) and are covered by
+	 * their own test suites instead, since is_admin() is false in this
+	 * CLI test context.
 	 *
 	 * @return void
 	 */
-	public function test_components_are_initialized(): void {
-		$plugin = Plugin::instance();
+	public function test_revalidate_component_is_initialized(): void {
+		Plugin::instance()->init();
 
-		// Revalidate should always be initialized.
-		$this->assertNotNull( $plugin->get_revalidate() );
-
-		// AdminSettings is only initialized in admin context.
-		// In test environment, is_admin() returns false by default,
-		// so AdminSettings may be null. Test that it's accessible.
-		$admin = $plugin->get_admin_settings();
-		// Just verify the method is callable - admin may be null in test context.
-		$this->assertTrue( 
-			$admin === null || $admin instanceof \RevalidatePosts\AdminSettings,
-			'get_admin_settings() should return null or AdminSettings instance'
+		$this->assertNotFalse(
+			has_action( 'save_post', [ Revalidate::instance(), 'on_post_saved' ] ),
+			'Revalidate should be initialized and its hooks registered by the real plugin bootstrap'
 		);
 	}
 }

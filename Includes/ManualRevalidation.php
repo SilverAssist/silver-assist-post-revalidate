@@ -14,6 +14,7 @@
 
 namespace RevalidatePosts;
 
+use SilverAssist\PluginKernel\Interfaces\LoadableInterface;
 use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
@@ -25,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.4.0
  */
-class ManualRevalidation {
+class ManualRevalidation implements LoadableInterface {
 	/**
 	 * Singleton instance
 	 *
@@ -58,13 +59,42 @@ class ManualRevalidation {
 	/**
 	 * ManualRevalidation constructor
 	 *
-	 * Sets up WordPress hooks for manual revalidation.
-	 *
 	 * @since 1.4.0
 	 */
 	private function __construct() {
 		$this->config = Configuration::instance();
+	}
+
+	/**
+	 * Initialize the component
+	 *
+	 * Sets up WordPress hooks for manual revalidation.
+	 *
+	 * @since 1.8.0
+	 * @return void
+	 */
+	public function init(): void {
 		$this->init_hooks();
+	}
+
+	/**
+	 * Get the component loading priority
+	 *
+	 * @since 1.8.0
+	 * @return int
+	 */
+	public function get_priority(): int {
+		return 30;
+	}
+
+	/**
+	 * Determine if the component should be loaded
+	 *
+	 * @since 1.8.0
+	 * @return bool
+	 */
+	public function should_load(): bool {
+		return \is_admin();
 	}
 
 	/**

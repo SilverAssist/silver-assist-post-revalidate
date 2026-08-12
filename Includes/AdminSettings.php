@@ -14,6 +14,7 @@
 
 namespace RevalidatePosts;
 
+use SilverAssist\PluginKernel\Interfaces\LoadableInterface;
 use SilverAssist\SettingsHub\SettingsHub;
 
 defined( 'ABSPATH' ) || exit;
@@ -25,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  */
-class AdminSettings
+class AdminSettings implements LoadableInterface
 {
 	/**
 	 * Singleton instance
@@ -66,13 +67,45 @@ class AdminSettings
 	/**
 	 * AdminSettings constructor
 	 *
-	 * Sets up WordPress admin hooks.
-	 *
 	 * @since 1.0.0
 	 */
 	private function __construct()
 	{
+	}
+
+	/**
+	 * Initialize the component
+	 *
+	 * Sets up WordPress admin hooks.
+	 *
+	 * @since 1.8.0
+	 * @return void
+	 */
+	public function init(): void
+	{
 		$this->init_hooks();
+	}
+
+	/**
+	 * Get the component loading priority
+	 *
+	 * @since 1.8.0
+	 * @return int
+	 */
+	public function get_priority(): int
+	{
+		return 30;
+	}
+
+	/**
+	 * Determine if the component should be loaded
+	 *
+	 * @since 1.8.0
+	 * @return bool
+	 */
+	public function should_load(): bool
+	{
+		return \is_admin();
 	}
 
 	/**
