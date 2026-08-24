@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk revalidation tool
 - Revalidation queue system
 
-## [Unreleased]
+## [1.8.0] - 2026-08-24
 
 ### Changed
 
